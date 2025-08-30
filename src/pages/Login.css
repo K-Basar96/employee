@@ -1,3 +1,7 @@
 .login-page .btn-outline-primary{
   border-radius: 50px;
 }
+label{
+  font-weight: 700;
+  text-transform: uppercase;
+}
