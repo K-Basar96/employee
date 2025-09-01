@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../pages/Login.css";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 const Login = () => {
+  const navigate = useNavigate();
+
     const [captcha, setCaptcha] = useState("");
     const [userCaptcha, setUserCaptcha] = useState("");
 
@@ -14,6 +18,7 @@ const Login = () => {
 
     // Fetch captcha on page load
     useEffect(() => {
+
         fetch("http://localhost:5000/captcha")
             .then((res) => res.json())
             .then((data) => setCaptcha(data.captcha))
@@ -22,6 +27,9 @@ const Login = () => {
 
     const handleLogin = async () => {
     // alert("✅ Captcha verified!");
+    const fp = await FingerprintJS.load();
+    const fs_res = await fp.get();
+    // console.log(fs_res.visitorId);
         if (userCaptcha.trim() === captcha.toString().trim()) {
             try {
                 const response = await fetch("http://localhost:5000/login", {
@@ -32,6 +40,10 @@ const Login = () => {
                 const data = await response.json();
                 setSuccess(data.success);
                 setMessage(data.message || "Unknown response");
+                if (data.success) {
+                    // ✅ Redirect to dashboard after successful login
+                    navigate("/dashboard");
+                }
             } catch (error) {
                 setMessage("Something went wrong!");
             }
@@ -119,7 +131,8 @@ const Login = () => {
                         </div>
                         <div className="mt-auto text-center">
                             <p className="mb-5">
-                                <strong>Helpline :</strong> 6289-352676 <strong>Email :</strong> contactschoolmanagementsystem@gmail.com
+                                <strong>Helpline :</strong> 6289-352676 <br />
+                                <strong>Email :</strong> contactschoolmanagementsystem@gmail.com
                             </p>
                         </div>
                     </div>

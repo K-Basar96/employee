@@ -1,0 +1,25 @@
+.academic-year {
+    background-color: #31CE36;
+    color: #fff;
+    font-weight: 500;
+    width: 100%;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.nav-link {
+    color: #000;
+    background-color: #fff;
+}
+
+.nav-link .fas {
+    color: #e0b423;
+}
+
+.active,
+.nav-link:focus {
+    color: #fff !important;
+    background-color: #1572E8;
+    border-radius: 20px;
+    font-weight: 500;
+}
