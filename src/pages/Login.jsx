@@ -4,8 +4,7 @@ import "../pages/Login.css";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 const Login = () => {
-  const navigate = useNavigate();
-
+    const navigate = useNavigate();
     const [captcha, setCaptcha] = useState("");
     const [userCaptcha, setUserCaptcha] = useState("");
 
@@ -40,8 +39,7 @@ const Login = () => {
                 setSuccess(data.success);
                 setMessage(data.message || "Unknown response");
                 if (data.success) {
-                    // ✅ Redirect to dashboard after successful login
-                    navigate("/dashboard");
+                    navigate("/dashboard"); // ✅ Redirect to dashboard after successful login
                 }
             } catch (error) {
                 setMessage("Something went wrong!");
@@ -55,13 +53,15 @@ const Login = () => {
         <div className="login-page container-fluid vh-100">
             <div className="row h-100">
                 {/* Left side with background image */}
-                <div className="col-md-7 d-flex align-items-center justify-content-center text-white"
-                    style={{ backgroundImage: "url('/login_page_bg.jpg')", backgroundSize: "cover", backgroundPosition: "center", }}>
+                <div className="col-12 col-md-6 p-0">
+                    <img className="w-100 h-100" src="/login_page_bg.jpg" alt="School Management System" 
+                        style={{ objectFit: "cover", maxHeight: "100vh" }}/>
                 </div>
 
                 {/* Right side with form */}
-                <div className="col-md-5 d-flex justify-content-center bg-light" style={{ marginTop: '250px' }}>
+                <div className="col-12 col-md-6 d-flex justify-content-center bg-light" >
                     <div className="col-md-8 d-flex flex-column">
+                        <div className="mb-auto"></div>
                         <h3 className="form-label d-block text-center">Login As</h3>
 
                         {/* Radio options */}
