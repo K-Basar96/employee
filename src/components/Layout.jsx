@@ -1,11 +1,14 @@
 // src/components/Layout.jsx
 import React, { useState, useEffect } from 'react';
+import useAntiDevTools from "../hooks/useAntiDevTools";
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 
 const Layout = () => {
+  // useAntiDevTools(); // Block browser devtools.
+  
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem("sidebar-collapsed");
     return stored ? JSON.parse(stored) : false;

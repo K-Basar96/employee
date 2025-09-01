@@ -30,7 +30,7 @@ const Login = () => {
     // console.log(fs_res.visitorId);
         if (userCaptcha.trim() === captcha.toString().trim()) {
             try {
-                const response = await fetch("/login", {
+                const response = await fetch("/auth/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, disecode, password, role }),
