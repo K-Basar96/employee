@@ -18,8 +18,7 @@ const Login = () => {
 
     // Fetch captcha on page load
     useEffect(() => {
-
-        fetch("http://localhost:5000/captcha")
+        fetch("/captcha")
             .then((res) => res.json())
             .then((data) => setCaptcha(data.captcha))
             .catch((err) => console.error("Error fetching captcha:", err));
@@ -32,7 +31,7 @@ const Login = () => {
     // console.log(fs_res.visitorId);
         if (userCaptcha.trim() === captcha.toString().trim()) {
             try {
-                const response = await fetch("http://localhost:5000/login", {
+                const response = await fetch("/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, disecode, password, role }),
@@ -112,7 +111,7 @@ const Login = () => {
                                 </div>
                                 <button type="button" className="btn btn-link mx-2 p-0 col-md-1"
                                     onClick={() => {
-                                        fetch("http://localhost:5000/captcha")
+                                        fetch("/captcha")
                                             .then((res) => res.json()).then((data) => setCaptcha(data.captcha));
                                     }}><i className="fas fa-sync-alt fs-3"></i>
                                 </button>

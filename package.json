@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "frontend": "vite",
+    "frontend": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "backend": "npm start --prefix backend",
     "preview": "vite preview",
-    "dev": "concurrently \"npm run frontend\" \"npm run backend\""
+    "start": "concurrently \"npm run frontend\" \"npm run backend\""
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
