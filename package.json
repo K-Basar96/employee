@@ -9,12 +9,13 @@
     "lint": "eslint .",
     "backend": "npm start --prefix backend",
     "preview": "vite preview",
-    "start": "concurrently \"npm run frontend\" \"npm run backend\""
+    "start": "concurrently \"npm run frontend\" \"nodemon .\\backend\\server.js\""
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@fortawesome/fontawesome-free": "^7.0.0",
     "bootstrap": "^5.3.8",
+    "dotenv": "^17.2.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.8.2",

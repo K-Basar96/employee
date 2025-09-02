@@ -5,8 +5,22 @@ import { useNavigate } from 'react-router-dom';
 const Header = ({ onToggleSidebar, collapsed, hovered }) => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate('/'); // back to login
+  const handleLogout = async () => {
+    try {
+        const response = await fetch("/auth/logout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json","Bearer token": '12345'},
+            body: JSON.stringify({ username, disecode, password, role }),
+        });
+        const data = await response.json();
+        setSuccess(data.success);
+        setMessage(data.message || "Unknown response");
+        if (data.success) {
+            navigate("/");
+        }
+    } catch (error) {
+        setMessage("Something went wrong!");
+    }
   };
 
   // Sidebar is expanded if not collapsed OR if hovered

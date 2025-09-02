@@ -25,15 +25,15 @@ const Login = () => {
 
     const handleLogin = async () => {
     // alert("✅ Captcha verified!");
-    const fp = await FingerprintJS.load();
-    const fs_res = await fp.get();
-    // console.log(fs_res.visitorId);
+        let fp = await FingerprintJS.load();
+        fp = await fp.get();
+        const fingerprint =fp.visitorId;
         if (userCaptcha.trim() === captcha.toString().trim()) {
             try {
                 const response = await fetch("/auth/login", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, disecode, password, role }),
+                    headers: { "Content-Type": "application/json"},
+                    body: JSON.stringify({ username, disecode, password, role, fingerprint }),
                 });
                 const data = await response.json();
                 setSuccess(data.success);
