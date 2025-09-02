@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
@@ -14,10 +15,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-
 // ---- Middleware ----
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173", // ✅ Vite frontend
+    credentials: true, // ✅ allow cookies
+  })
+);
+
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../dist")));
 
 // ---- Routes ----

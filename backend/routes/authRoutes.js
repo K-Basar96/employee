@@ -1,21 +1,20 @@
 import express from "express";
-const app = express();
-const router = express.Router();
-import {login,refresh, logout } from "../controllers/authController.js";
+import { login, refresh, logout } from "../controllers/authController.js";
 import { requireAuth } from "../middleware/auth.js";
 
-// Login → handled in controller
-router.post("/login", login);
-router.post("/refresh", refresh);
-router.post("/logout", logout);
+const router = express.Router();
 
-// Get logged-in user (session check)
-router.get("/me", (req, res) => {
-  if (req.session.user) {
-    res.json({ user: req.session.user });
-  } else {
-    res.status(401).json({ message: "Not authenticated" });
+// ---- Auth Routes ----
+router.post("/login", login);
+router.post("/refresh", refresh); // refresh doesn’t need requireAuth, it uses refreshToken cookie
+router.post("/logout", requireAuth, logout);
+
+// Get logged-in user
+router.get("/me", requireAuth, (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
   }
+  res.json({ success: true, user: req.user });
 });
 
 export default router;
