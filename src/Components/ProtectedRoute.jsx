@@ -1,39 +1,33 @@
 // src/components/ProtectedRoute.jsx
-import React, { useEffect, useState } from "react";
+import React,{useEffect} from "react";
 import { Navigate } from "react-router-dom";
-import api from "../hooks/axios";
+import useAuth from "../hooks/useAuth";
 
 const ProtectedRoute = ({ children }) => {
-    const [loading, setLoading] = useState(true);
-    const [authenticated, setAuthenticated] = useState(false);
-
+    const { loading, isAuthenticated } = useAuth(false);
+    
     useEffect(() => {
-        const verifySession = async () => {
-            try {
-                const res = await api.get("/auth/me");
-                if (res.data?.user) {
-                    setAuthenticated(true);
-                } else {
-                    setAuthenticated(false);
-                }
-            } catch {
-                setAuthenticated(false);
-            } finally {
-                setLoading(false);
-            }
-        };
-        verifySession();
-    }, []);
+        console.log("ProtectedRoute state changed - loading:", loading, "isAuthenticated:", isAuthenticated);
+    }, [loading, isAuthenticated]);
 
+
+    // // Show loading spinner
     if (loading) {
-        return <div className="text-center mt-5">🔄 Checking session...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
     }
 
-    if (!authenticated) {
+    // Redirect if not authenticated
+    if (!isAuthenticated) {
+        localStorage.clear();
         return <Navigate to="/" replace />;
     }
 
     return children;
 };
-
 export default ProtectedRoute;

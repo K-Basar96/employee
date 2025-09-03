@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../hooks/axios"; // ✅ use your axios instance
+import api from "../hooks/axios"; 
 
 const Header = ({ onToggleSidebar, collapsed, hovered }) => {
   const [message, setMessage] = useState("");
@@ -14,7 +14,8 @@ const Header = ({ onToggleSidebar, collapsed, hovered }) => {
       setMessage(data.message || "Unknown response");
 
       if (data.success) {
-        navigate("/"); // ✅ redirect to login/home
+        localStorage.clear();
+        navigate("/");
       }
     } catch (error) {
       console.error("Logout error:", error);

@@ -38,16 +38,12 @@ async function login(req, res) {
       const { accessToken, refreshToken } = generateTokens(user.id, sessionId);
 
       // ✅ store session in Redis
-      await redis.set(
-        `session:${sessionId}`,
-        JSON.stringify({ refreshToken, fingerprint }),
-        { EX: REFRESH_EXPIRES }
-      );
+      await redis.set(`session:${sessionId}`,JSON.stringify({ refreshToken, fingerprint }),{ EX: REFRESH_EXPIRES });
 
       // set cookie
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, // ⚠️ true only on HTTPS
+        secure: false,
         sameSite: "Lax",
         maxAge: ACCESS_EXPIRES * 1000,
       });
@@ -56,14 +52,9 @@ async function login(req, res) {
         success: true,
         message: "Login successful!",
         accessToken,
-        refreshToken,
         expiresIn: ACCESS_EXPIRES,
         role,
-        user: {
-          id: user.id,
-          username: user.disecode || username,
-          source: user.source,
-        },
+        user,
       });
     } else {
       res.status(401).json({ success: false, message: "Invalid credentials" });

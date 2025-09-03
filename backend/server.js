@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import { requireAuth } from "./middleware/auth.js";
 
 dotenv.config();
 
@@ -16,12 +17,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ---- Middleware ----
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173", // ✅ Vite frontend
-    credentials: true, // ✅ allow cookies
-  })
-);
+app.use(cors({origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true, }));
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -31,9 +27,26 @@ app.use(express.static(path.join(__dirname, "../dist")));
 app.use("/auth", authRoutes);
 
 // ---- Captcha ----
-app.get("/captcha", (req, res) => {
-  const captcha = Math.floor(100000 + Math.random() * 900000);
-  res.json({ captcha });
+app.get("/captcha", async (req, res) => {
+  try {
+    const token = req.cookies?.accessToken || (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      const sessionKey = `session:${decoded.sid}`;
+      const sessionData = await redis.get(sessionKey);
+
+      console.log("Captcha check - token:", token, "sessionKey:", sessionKey, "sessionData:", sessionData);
+      if (sessionData) {
+        return res.json({ redirect: true });
+      }
+    }
+    
+    const captcha = Math.floor(100000 + Math.random() * 900000);
+    res.json({ captcha });
+  } catch (err) {
+    const captcha = Math.floor(100000 + Math.random() * 900000);
+    res.json({ captcha });
+  }
 });
 
 // ---- React Router catch-all ----

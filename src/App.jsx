@@ -18,13 +18,7 @@ function App() {
       <Route path="/" element={<Login />} />
 
       {/* Protected routes with layout */}
-      <Route
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/verification" element={<Verification />} />
         <Route path="/discontinuity" element={<Discontinuity />} />
@@ -33,6 +27,7 @@ function App() {
         <Route path="/sign" element={<Signature />} />
         {/* ✅ Add more protected routes here */}
       </Route>
+      <Route path="*" element={<Login />} />
     </Routes>
   );
 }

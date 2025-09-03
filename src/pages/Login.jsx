@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../pages/Login.css";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-import api from "../hooks/axios"; // ✅ use axios instance with withCredentials
+import api from "../hooks/axios"; 
+import useAuth from "../hooks/useAuth"; 
 
 const Login = () => {
     const navigate = useNavigate();
@@ -16,51 +17,40 @@ const Login = () => {
     const [message, setMessage] = useState("");
     const [success, setSuccess] = useState(true);
 
-    // ✅ Check session on mount
-    useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const res = await api.get("/auth/me");
-                if (res.data?.user) {
-                    navigate("/dashboard"); // already logged in
-                }
-            } catch {
-                // not logged in → stay on login
-            }
-        };
-        checkSession();
+    const { loading, isAuthenticated, captcha: authCaptcha, login } = useAuth(true);
 
-        // fetch captcha
-        fetch("/captcha")
-            .then((res) => res.json())
-            .then((data) => setCaptcha(data.captcha))
-            .catch((err) => console.error("Error fetching captcha:", err));
-    }, [navigate]);
+    // Handle authentication status
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/dashboard");
+        } else if (authCaptcha) {
+            setCaptcha(authCaptcha);
+        }
+    }, [isAuthenticated, authCaptcha, navigate]);
 
     const handleLogin = async () => {
-        let fp = await FingerprintJS.load();
-        fp = await fp.get();
-        const fingerprint = fp.visitorId;
+        try {
+            let fp = await FingerprintJS.load();
+            fp = await fp.get();
+            const fingerprint = fp.visitorId;
 
-        if (userCaptcha.trim() === captcha.toString().trim()) {
-            try {
-                const { data } = await api.post("/auth/login", {
-                    username,
-                    disecode,
-                    password,
-                    role,
-                    fingerprint,
-                });
-                setSuccess(data.success);
-                setMessage(data.message || "Unknown response");
-                if (data.success) {
-                    navigate("/dashboard"); // ✅ Redirect after login
+            if (userCaptcha.trim() === captcha.toString().trim()) {
+                const result = await login({username, disecode, password, role, fingerprint});
+                setSuccess(result.success);
+                setMessage(result.message);
+                
+                if (result.success) {
+                    setTimeout(() => {
+                        navigate("/dashboard");
+                    }, 1000);
                 }
-            } catch (error) {
-                setMessage("Something went wrong!");
+            } else {
+                setSuccess(false);
+                setMessage("Captcha is incorrect!");
             }
-        } else {
-            alert("❌ Captcha incorrect!");
+        } catch (error) {
+            setSuccess(false);
+            setMessage("Something went wrong during login!");
         }
     };
 
@@ -69,12 +59,7 @@ const Login = () => {
             <div className="row h-100">
                 {/* Left side with background image */}
                 <div className="col-12 col-md-6 p-0">
-                    <img
-                        className="w-100 h-100"
-                        src="/login_page_bg.jpg"
-                        alt="School Management System"
-                        style={{ objectFit: "cover", maxHeight: "100vh" }}
-                    />
+                    <img className="w-100 h-100" src="/login_page_bg.jpg" alt="School Management System" style={{ objectFit: "cover", maxHeight: "100vh" }}/>
                 </div>
 
                 {/* Right side with form */}
@@ -86,38 +71,17 @@ const Login = () => {
                         {/* Radio options */}
                         <div className="mb-3 text-center">
                             <label className={`btn btn-outline-primary me-2 ${role === 0 ? "active" : ""}`}>
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value={0}
-                                    className="d-none"
-                                    checked={role === 0}
-                                    onChange={(e) => setRole(parseInt(e.target.value))}
-                                />
+                                <input type="radio" name="role" value={0} className="d-none" checked={role === 0} onChange={(e) => setRole(parseInt(e.target.value))}/>
                                 <i className="fas fa-user me-2"></i> Teacher
                             </label>
 
                             <label className={`btn btn-outline-primary me-2 ${role === 2 ? "active" : ""}`}>
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value={2}
-                                    className="d-none"
-                                    checked={role === 2}
-                                    onChange={(e) => setRole(parseInt(e.target.value))}
-                                />
+                                <input type="radio" name="role" value={2} className="d-none" checked={role === 2} onChange={(e) => setRole(parseInt(e.target.value))}/>
                                 <i className="fas fa-school me-2"></i> School
                             </label>
 
                             <label className={`btn btn-outline-primary ${role === 1 ? "active" : ""}`}>
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value={1}
-                                    className="d-none"
-                                    checked={role === 1}
-                                    onChange={(e) => setRole(parseInt(e.target.value))}
-                                />
+                                <input type="radio" name="role" value={1} className="d-none" checked={role === 1} onChange={(e) => setRole(parseInt(e.target.value))}/>
                                 <i className="fas fa-user-shield me-2"></i> Administrator
                             </label>
                         </div>
@@ -131,12 +95,7 @@ const Login = () => {
                                 field.roles.includes(role) && (
                                     <div className="mb-3" key={i}>
                                         <label className="form-label">{field.label}</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            value={field.state}
-                                            onChange={(e) => field.setState(e.target.value)}
-                                        />
+                                        <input type="text" className="form-control" value={field.state} onChange={(e) => field.setState(e.target.value)}/>
                                     </div>
                                 )
                         )}
@@ -171,14 +130,7 @@ const Login = () => {
                                 >
                                     <i className="fas fa-sync-alt fs-3"></i>
                                 </button>
-                                <input
-                                    type="text"
-                                    maxLength={6}
-                                    className="form-control fs-5"
-                                    placeholder="Enter captcha"
-                                    value={userCaptcha}
-                                    onChange={(e) => setUserCaptcha(e.target.value)}
-                                />
+                                <input type="text" maxLength={6} className="form-control fs-5" placeholder="Enter captcha" value={userCaptcha} onChange={(e) => setUserCaptcha(e.target.value)}/>
                             </div>
                         </div>
 
