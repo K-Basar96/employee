@@ -17,12 +17,24 @@ export default function useAntiDevTools() {
     };
 
     // Detect if DevTools is open
-    const detectDevTools = () => {
+    const detectDevTools = async () => {
       if (
         window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160
       ) {
         alert("Unauthorized Activity Found!");
-        window.location.href = "/"; 
+        try {
+      const { data } = await api.post("/auth/logout");
+      setSuccess(data.success);
+      setMessage(data.message || "Unknown response");
+
+      if (data.success) {
+        localStorage.clear();
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      setMessage("Something went wrong!");
+    }
       }
     };
 

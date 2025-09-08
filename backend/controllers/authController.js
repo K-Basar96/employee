@@ -1,15 +1,18 @@
 // backend/controllers/authController.js
 import { findUser } from "../models/userModel.js";
 import jwt from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
 import redis from "../redisClient.js";
-import { randomUUID } from "crypto";
+import crypto, { randomUUID } from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const ACCESS_EXPIRES = parseInt(process.env.JWT_ACCESS_EXPIRES || "900", 10); // 15m
-const REFRESH_EXPIRES = parseInt(process.env.JWT_REFRESH_EXPIRES || "604800", 10); // 7d
+const ACCESS_EXPIRES = parseInt(process.env.JWT_ACCESS_EXPIRES || "600", 10); // 10m
+const REFRESH_EXPIRES = parseInt(process.env.JWT_REFRESH_EXPIRES || "7200", 10); // 6h
+const privateKey = fs.readFileSync("./backend/private.pem", "utf8");
 
 // ---------------- Helpers ----------------
 const generateTokens = (userId, sessionId) => {
@@ -22,11 +25,22 @@ const generateTokens = (userId, sessionId) => {
   return { accessToken, refreshToken };
 };
 
+function decryptPassword(encryptedBase64) {
+  const decrypted = crypto.privateDecrypt({
+    key: privateKey,
+    padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+    oaepHash: "sha256",
+  },
+    Buffer.from(encryptedBase64, "base64")
+  );
+  return decrypted.toString("utf8");
+}
+
 // ---------------- Controllers ----------------
 async function login(req, res) {
-  const { username, disecode, password, role } = req.body;
+  const { username, disecode, encryptedPassword, role } = req.body;
   const fingerprint = req.headers["x-fingerprint"];
-
+  const password = decryptPassword(encryptedPassword);
   if (!fingerprint) {
     return res.status(400).json({ success: false, message: "Missing fingerprint" });
   }
@@ -38,7 +52,7 @@ async function login(req, res) {
       const { accessToken, refreshToken } = generateTokens(user.id, sessionId);
 
       // ✅ store session in Redis
-      await redis.set(`session:${sessionId}`,JSON.stringify({ refreshToken, fingerprint }),{ EX: REFRESH_EXPIRES });
+      await redis.set(`session:${sessionId}`, JSON.stringify({ refreshToken, fingerprint }), { EX: REFRESH_EXPIRES });
 
       // set cookie
       res.cookie("accessToken", accessToken, {

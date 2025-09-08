@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import "../pages/Login.css";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import api from "../hooks/axios"; 
-import useAuth from "../hooks/useAuth"; 
+import useAuth from "../hooks/useAuth";
+import forge from "node-forge";
 
 const Login = () => {
     const navigate = useNavigate();
+    const [publicKeyPem, setPublicKeyPem] = useState("");
     const [captcha, setCaptcha] = useState("");
     const [userCaptcha, setUserCaptcha] = useState("");
     const [role, setRole] = useState(0);
@@ -27,15 +29,33 @@ const Login = () => {
             setCaptcha(authCaptcha);
         }
     }, [isAuthenticated, authCaptcha, navigate]);
+     useEffect(() => {
+        fetch("/public.pem")
+        .then((res) => res.text())
+        .then(setPublicKeyPem)
+        .catch((err) => console.error("Failed to load public key:", err));
+    }, []);
+
+    function encryptPassword(pass) {
+        if (!publicKeyPem) {
+            throw new Error("Public key not loaded yet");
+        }
+        const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
+        const encrypted = publicKey.encrypt(pass, "RSA-OAEP", {
+            md: forge.md.sha256.create(),
+        });
+        return forge.util.encode64(encrypted);
+    }
 
     const handleLogin = async () => {
+        const encryptedPassword = encryptPassword(password);
         try {
             let fp = await FingerprintJS.load();
             fp = await fp.get();
             const fingerprint = fp.visitorId;
 
             if (userCaptcha.trim() === captcha.toString().trim()) {
-                const result = await login({username, disecode, password, role, fingerprint});
+                const result = await login({username, disecode, encryptedPassword, role, fingerprint});
                 setSuccess(result.success);
                 setMessage(result.message);
                 

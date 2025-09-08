@@ -5,13 +5,6 @@ import useAuth from "../hooks/useAuth";
 
 const ProtectedRoute = ({ children }) => {
     const { loading, isAuthenticated } = useAuth(false);
-    
-    useEffect(() => {
-        console.log("ProtectedRoute state changed - loading:", loading, "isAuthenticated:", isAuthenticated);
-    }, [loading, isAuthenticated]);
-
-
-    // // Show loading spinner
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center vh-100">
@@ -22,7 +15,6 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    // Redirect if not authenticated
     if (!isAuthenticated) {
         localStorage.clear();
         return <Navigate to="/" replace />;

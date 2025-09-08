@@ -1,22 +1,21 @@
 // src/hooks/useAuth.jsx
 import { useEffect, useState } from "react";
 import api from "./axios";
+import { useDispatch } from "react-redux";
+import { session_token } from "../redux/action";
 
 // Create a singleton pattern to track ongoing auth checks
 let authCheckInProgress = null;
 
 const useAuth = (redirectToLogin = false) => {
+    const dispatch = useDispatch();
     const [user, setUser] = useState(() => {
         const userData = localStorage.getItem("user");
         return userData ? JSON.parse(userData) : null;
     });
     const [loading, setLoading] = useState(true);
     const [captcha, setCaptcha] = useState("");
-    // const [lastCheck, setLastCheck] = useState(0);
 
-    useEffect(() => {
-        console.log("Auth state changed1:", user);
-    }, [user]);
     const checkAuth = async () => {
         try {
             // If there's an ongoing check, wait for it and return
@@ -30,8 +29,6 @@ const useAuth = (redirectToLogin = false) => {
                 try {
                     // Get captcha to verify session
                     const res = await api.get("/captcha");
-                    console.log("Captcha check response:", res.data);
-                    console.log("after captcha:", user);
                     // If we get a redirect, session is valid
                     if (res.data.redirect) {
                         // Only update user data if needed
@@ -87,6 +84,7 @@ const useAuth = (redirectToLogin = false) => {
         try {
             const { data } = await api.post("/auth/login", credentials);
             if (data.success && data.user) {
+                dispatch(session_token(data.accessToken));
                 // Only update if the user data is different
                 const currentUser = localStorage.getItem("user");
                 if (!currentUser || JSON.stringify(data.user) !== currentUser) {
