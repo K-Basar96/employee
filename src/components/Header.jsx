@@ -11,7 +11,7 @@ const Header = ({ onToggleSidebar, collapsed, hovered }) => {
     try {
       const { data } = await api.post("/auth/logout");
       setSuccess(data.success);
-      setMessage(data.message || "Unknown response");
+      setMessage(data.message);
 
       if (data.success) {
         localStorage.clear();

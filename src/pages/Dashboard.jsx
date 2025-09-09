@@ -10,7 +10,7 @@ const Dashboard = () => {
                 <h3 className="text-white fw-bold " >SED Dashboard</h3>
                 <div className="card px-3 mt-4">
                     <h4 className="card-title">Hello there</h4>
-                    <div className="card-title">Authenticated User: {token}</div>
+                    {/* <div className="card-title">Authenticated User: {token}</div> */}
                     <div className="card-title">This is sample text.</div>
                 </div>
             </div>

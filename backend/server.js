@@ -30,13 +30,15 @@ app.use("/auth", authRoutes);
 // ---- Captcha ----
 app.get("/captcha", async (req, res) => {
   try {
-    const token = req.cookies?.accessToken || (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    const token = req.cookies?.accessToken;
+    const x_fingerprint = req.headers["x-fingerprint"];
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       const sessionKey = `session:${decoded.sid}`;
       const sessionData = await redis.get(sessionKey);
-      if (sessionData) {
-        return res.json({ redirect: true });
+      const sessionObj = JSON.parse(sessionData);
+      if (sessionData && x_fingerprint && sessionObj.fingerprint === x_fingerprint) {
+        return res.json({ redirect: true, user: sessionObj.user });
       }
     }
 

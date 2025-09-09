@@ -52,7 +52,7 @@ async function login(req, res) {
       const { accessToken, refreshToken } = generateTokens(user.id, sessionId);
 
       // ✅ store session in Redis
-      await redis.set(`session:${sessionId}`, JSON.stringify({ refreshToken, fingerprint }), { EX: REFRESH_EXPIRES });
+      await redis.set(`session:${sessionId}`, JSON.stringify({ refreshToken, fingerprint, user }), { EX: REFRESH_EXPIRES });
 
       // set cookie
       res.cookie("accessToken", accessToken, {

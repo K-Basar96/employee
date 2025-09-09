@@ -18,21 +18,16 @@ const useAuth = (redirectToLogin = false) => {
 
     const checkAuth = async () => {
         try {
-            // If there's an ongoing check, wait for it and return
             if (authCheckInProgress) {
                 await authCheckInProgress;
                 return;
             }
-
-            // Create a new auth check promise
             authCheckInProgress = (async () => {
                 try {
-                    // Get captcha to verify session
                     const res = await api.get("/captcha");
-                    // If we get a redirect, session is valid
                     if (res.data.redirect) {
-                        // Only update user data if needed
                         if (!user) {
+                            localStorage.setItem("user", JSON.stringify(res.data.user));
                             const userData = localStorage.getItem("user");
                             if (userData) {
                                 setUser(JSON.parse(userData));
@@ -40,12 +35,10 @@ const useAuth = (redirectToLogin = false) => {
                         }
                         if (captcha) setCaptcha("");
                     } else {
-                        // Invalid session, clear everything only if we have data
                         if (user) {
                             localStorage.clear();
                             setUser(null);
                         }
-                        // Only update captcha if it changed
                         if (res.data.captcha && captcha !== res.data.captcha) {
                             setCaptcha(res.data.captcha);
                         }
@@ -58,7 +51,6 @@ const useAuth = (redirectToLogin = false) => {
             await authCheckInProgress;
         } catch (error) {
             console.error("Auth check failed:", error);
-            // Always clear on error since it means invalid token
             localStorage.clear();
             setUser(null);
         } finally {
