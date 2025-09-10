@@ -30,7 +30,7 @@ app.use("/auth", authRoutes);
 // ---- Captcha ----
 app.get("/captcha", async (req, res) => {
   try {
-    const token = req.cookies?.accessToken;
+    const token = req.cookies?.auth;
     const x_fingerprint = req.headers["x-fingerprint"];
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);

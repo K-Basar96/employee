@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
+import useAuth from '../hooks/useAuth';
 
 const Sidebar = ({ collapsed }) => {
+  const { user } = useAuth();
   const [hovered, setHovered] = useState(false);
 
   // Sidebar is expanded if not collapsed, or if collapsed but hovered
@@ -28,22 +30,27 @@ const Sidebar = ({ collapsed }) => {
           <i className="fas fa-home"></i>
           {isExpanded && <span className="ms-2">Dashboard</span>}
         </NavLink>
+        {user.designation==="DI/S (SE)" && (
         <NavLink to="/Verification" className="nav-link mb-2" title="Verification of Eligibility">
           <i className="fas fa-user-check"></i>
           {isExpanded && <span className="ms-2">Verification of Eligibility</span>}
-        </NavLink>
-        <NavLink to="/discontinuity" className="nav-link mb-2" title="Proposal of Member's discontinuity">
+        </NavLink>)}
+        {user.designation==="DI/S (SE)" && (
+          <NavLink to="/discontinuity" className="nav-link mb-2" title="Proposal of Member's discontinuity">
           <i className="fas fa-file-alt"></i>
           {isExpanded && <span className="ms-2">Proposal of Member's discontinuity</span>}
-        </NavLink>
-        <NavLink to="/mc_status" className="nav-link mb-2" title="Managing Committee Status">
-          <i className="fas fa-users-cog"></i>
-          {isExpanded && <span className="ms-2">Managing Committee Status</span>}
-        </NavLink>
+        </NavLink>)}
+        {user.designation==="SED" && (
+          <NavLink to="/mc_status" className="nav-link mb-2" title="Managing Committee Status">
+            <i className="fas fa-users-cog"></i>
+            {isExpanded && <span className="ms-2">Managing Committee Status</span>}
+          </NavLink>
+        )}
+        {user.designation==="DI/S (SE)" && (
         <NavLink to="/uploaded" className="nav-link mb-2" title="Uploaded Data">
           <i className="fas fa-upload"></i>
           {isExpanded && <span className="ms-2">Uploaded Data</span>}
-        </NavLink>
+        </NavLink>)}
         <NavLink to="/sign" className="nav-link mb-2" title="Signature">
           <i className="fas fa-pen-fancy"></i>
           {isExpanded && <span className="ms-2">Signature</span>}

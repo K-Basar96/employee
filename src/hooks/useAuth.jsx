@@ -15,7 +15,7 @@ const useAuth = (redirectToLogin = false) => {
     });
     const [loading, setLoading] = useState(true);
     const [captcha, setCaptcha] = useState("");
-
+    
     const checkAuth = async () => {
         try {
             if (authCheckInProgress) {
@@ -62,15 +62,19 @@ const useAuth = (redirectToLogin = false) => {
         checkAuth();
     }, []);
 
-    // const logout = async () => {
-    //     try {
-    //         await api.post("/auth/logout");
-    //         localStorage.clear();
-    //         setUser(null);
-    //     } catch (error) {
-    //         console.error("Logout failed:", error);
-    //     }
-    // };
+    const logout = async () => {
+        try {
+            const { data } = await api.post("/auth/logout");
+
+            localStorage.clear();
+            setUser(null);
+
+            return { success: true, message: data?.message || "Logout successful" };
+        } catch (error) {
+            console.error("Logout failed:", error);
+            return { success: false, message: "Something went wrong during logout!" };
+        }
+    };
 
     const login = async (credentials) => {
         try {
@@ -94,14 +98,7 @@ const useAuth = (redirectToLogin = false) => {
 
     const refreshAuth = () => checkAuth();
 
-    return {
-        user,
-        loading,
-        captcha,
-        isAuthenticated: !!user,
-        login,
-        refreshAuth
-    };
+    return {user, loading, captcha, isAuthenticated: !!user, login, logout, refreshAuth, checkAuth};
 };
 
 export default useAuth;

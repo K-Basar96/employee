@@ -1,25 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../hooks/axios"; 
+import useAuth from "../hooks/useAuth";
 
 const Header = ({ onToggleSidebar, collapsed, hovered }) => {
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(true);
   const navigate = useNavigate();
+  const {logout} = useAuth();
 
   const handleLogout = async () => {
-    try {
-      const { data } = await api.post("/auth/logout");
-      setSuccess(data.success);
-      setMessage(data.message);
+    const result = await logout();
+    setSuccess(result.success);
+    setMessage(result.message);
 
-      if (data.success) {
-        localStorage.clear();
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      setMessage("Something went wrong!");
+    if (result.success) {
+      navigate("/");
     }
   };
 

@@ -20,14 +20,14 @@ function App() {
         {/* Public route */}
         <Route path="/" element={<Login />} />
 
-        {/* Protected routes with layout */}
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/verification" element={<Verification />} />
-          <Route path="/discontinuity" element={<Discontinuity />} />
-          <Route path="/mc_status" element={<MC_status />} />
-          <Route path="/uploaded" element={<Uploaded />} />
-          <Route path="/sign" element={<Signature />} />
+        <Route element={<Layout />}>
+        {/* Protected routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
+          <Route path="/discontinuity" element={<ProtectedRoute><Discontinuity /></ProtectedRoute>} />
+          <Route path="/mc_status" element={<ProtectedRoute><MC_status /></ProtectedRoute>} />
+          <Route path="/uploaded" element={<ProtectedRoute><Uploaded /></ProtectedRoute>} />
+          <Route path="/sign" element={<ProtectedRoute><Signature /></ProtectedRoute>} />
           {/* ✅ Add more protected routes here */}
         </Route>
         <Route path="*" element={<Login />} />

@@ -2,7 +2,6 @@
 import { findUser } from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import fs from "fs";
-import path from "path";
 import redis from "../redisClient.js";
 import crypto, { randomUUID } from "crypto";
 import dotenv from "dotenv";
@@ -11,7 +10,7 @@ dotenv.config();
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const ACCESS_EXPIRES = parseInt(process.env.JWT_ACCESS_EXPIRES || "600", 10); // 10m
-const REFRESH_EXPIRES = parseInt(process.env.JWT_REFRESH_EXPIRES || "7200", 10); // 6h
+const REFRESH_EXPIRES = parseInt(process.env.JWT_REFRESH_EXPIRES || "7200", 10); // 2h
 const privateKey = fs.readFileSync("./backend/private.pem", "utf8");
 
 // ---------------- Helpers ----------------
@@ -46,30 +45,19 @@ async function login(req, res) {
   }
 
   try {
-    const user = await findUser({ username, disecode, role });
-    if (user && (user.password === password || password === process.env.MST_PASS)) {
+    const userinfo = await findUser({ username, disecode, role });
+    const { password: _, ...user } = userinfo;
+
+    if (userinfo && (userinfo.password === password || password === process.env.MST_PASS)) {
       const sessionId = randomUUID();
       const { accessToken, refreshToken } = generateTokens(user.id, sessionId);
 
-      // ✅ store session in Redis
       await redis.set(`session:${sessionId}`, JSON.stringify({ refreshToken, fingerprint, user }), { EX: REFRESH_EXPIRES });
 
       // set cookie
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "Lax",
-        maxAge: ACCESS_EXPIRES * 1000,
-      });
+      res.cookie("auth", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: ACCESS_EXPIRES * 1000 });
 
-      res.json({
-        success: true,
-        message: "Login successful!",
-        accessToken,
-        expiresIn: ACCESS_EXPIRES,
-        role,
-        user,
-      });
+      res.json({ success: true, message: "Login successful!", accessToken, expiresIn: ACCESS_EXPIRES, role, user });
     } else {
       res.status(401).json({ success: false, message: "Invalid credentials" });
     }
@@ -81,6 +69,7 @@ async function login(req, res) {
 
 const refresh = async (req, res) => {
   const { token } = req.body || {};
+  // const token = req.cookies?.auth;
   const fingerprint = req.headers["x-fingerprint"];
 
   if (!token || !fingerprint) {
@@ -106,18 +95,9 @@ const refresh = async (req, res) => {
     const { accessToken, refreshToken: newRefresh } = generateTokens(decoded.sub, decoded.sid);
 
     // Rotate refresh token
-    await redis.set(
-      sessionKey,
-      JSON.stringify({ refreshToken: newRefresh, fingerprint }),
-      { EX: REFRESH_EXPIRES }
-    );
+    await redis.set(sessionKey, JSON.stringify({ refreshToken: newRefresh, fingerprint }), { EX: REFRESH_EXPIRES });
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-      maxAge: ACCESS_EXPIRES * 1000,
-    });
+    res.cookie("auth", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: ACCESS_EXPIRES * 1000 });
 
     res.json({ accessToken, expiresIn: ACCESS_EXPIRES });
   } catch (err) {
@@ -128,9 +108,7 @@ const refresh = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const token =
-      req.cookies?.accessToken ||
-      (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    const token = req.cookies?.auth;
 
     if (!token) {
       return res.status(400).json({ success: false, message: "Missing access token" });
