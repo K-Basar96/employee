@@ -65,11 +65,9 @@ const useAuth = (redirectToLogin = false) => {
     const logout = async () => {
         try {
             const { data } = await api.post("/auth/logout");
-
             localStorage.clear();
             setUser(null);
-
-            return { success: true, message: data?.message || "Logout successful" };
+            return { success: true, message: data?.message };
         } catch (error) {
             console.error("Logout failed:", error);
             return { success: false, message: "Something went wrong during logout!" };
@@ -96,7 +94,6 @@ const useAuth = (redirectToLogin = false) => {
     };
 
     const refreshAuth = () => checkAuth();
-
     return {user, loading, captcha, isAuthenticated: !!user, login, logout, refreshAuth, checkAuth};
 };
 

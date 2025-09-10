@@ -113,16 +113,10 @@ const logout = async (req, res) => {
     if (!token) {
       return res.status(400).json({ success: false, message: "Missing access token" });
     }
-
     const decoded = jwt.verify(token, ACCESS_SECRET);
-
-    // ❌ remove session from Redis
     await redis.del(`session:${decoded.sid}`);
-
-    // ❌ clear cookie
-    res.clearCookie("accessToken");
-
-    return res.json({ success: true, message: "Logged out" }); // ✅ unified response
+    res.clearCookie("auth");
+    return res.json({ success: true, message: "Logout successful" });
   } catch (err) {
     console.error("Logout error:", err.message);
     return res.status(401).json({ success: false, message: "Invalid token" });
