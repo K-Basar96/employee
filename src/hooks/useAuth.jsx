@@ -81,7 +81,6 @@ const useAuth = (redirectToLogin = false) => {
             const { data } = await api.post("/auth/login", credentials);
             if (data.success && data.user) {
                 dispatch(session_token(data.accessToken));
-                // Only update if the user data is different
                 const currentUser = localStorage.getItem("user");
                 if (!currentUser || JSON.stringify(data.user) !== currentUser) {
                     localStorage.setItem("user", JSON.stringify(data.user));
