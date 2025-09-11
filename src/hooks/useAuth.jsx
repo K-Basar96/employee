@@ -15,7 +15,7 @@ const useAuth = (redirectToLogin = false) => {
     });
     const [loading, setLoading] = useState(true);
     const [captcha, setCaptcha] = useState("");
-    
+
     const checkAuth = async () => {
         try {
             if (authCheckInProgress) {
@@ -94,7 +94,7 @@ const useAuth = (redirectToLogin = false) => {
     };
 
     const refreshAuth = () => checkAuth();
-    return {user, loading, captcha, isAuthenticated: !!user, login, logout, refreshAuth, checkAuth};
+    return { user, loading, captcha, isAuthenticated: !!user, login, logout, refreshAuth, checkAuth };
 };
 
 export default useAuth;

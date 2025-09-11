@@ -10,28 +10,28 @@ import MC_status from "./pages/MC_status";
 import Signature from "./pages/Signature";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-// import { useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import store from "./redux/store";
 
 function App() {
   // console.log(store);
   return (
-      <Routes>
-        {/* Public route */}
-        <Route path="/" element={<Login />} />
+    <Routes>
+      {/* Public route */}
+      <Route path="/" element={<Login />} />
 
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         {/* Protected routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-          <Route path="/discontinuity" element={<ProtectedRoute><Discontinuity /></ProtectedRoute>} />
-          <Route path="/mc_status" element={<ProtectedRoute><MC_status /></ProtectedRoute>} />
-          <Route path="/uploaded" element={<ProtectedRoute><Uploaded /></ProtectedRoute>} />
-          <Route path="/sign" element={<ProtectedRoute><Signature /></ProtectedRoute>} />
-          {/* ✅ Add more protected routes here */}
-        </Route>
-        <Route path="*" element={<Login />} />
-      </Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/verification" element={<Verification />} />
+        <Route path="/discontinuity" element={<Discontinuity />} />
+        <Route path="/mc_status" element={<MC_status />} />
+        <Route path="/uploaded" element={<Uploaded />} />
+        <Route path="/sign" element={<Signature />} />
+        {/* ✅ Add more protected routes here */}
+      </Route>
+      <Route path="*" element={<Login />} />
+    </Routes>
   );
 }
 
