@@ -7,32 +7,32 @@ import Sidebar from './Sidebar';
 import Footer from './Footer';
 
 const Layout = () => {
-  // useAntiDevTools(); // Block browser devtools.
-  
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    const stored = localStorage.getItem("sidebar-collapsed");
-    return stored ? JSON.parse(stored) : false;
-  });
+    // useAntiDevTools(); // Block browser devtools.
 
-   useEffect(() => {
-    localStorage.setItem("sidebar-collapsed", JSON.stringify(sidebarCollapsed));
-  }, [sidebarCollapsed]);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        const stored = localStorage.getItem("sidebar-collapsed");
+        return stored ? JSON.parse(stored) : false;
+    });
 
-  const toggleSidebar = () => setSidebarCollapsed(s => !s);
+    useEffect(() => {
+        localStorage.setItem("sidebar-collapsed", JSON.stringify(sidebarCollapsed));
+    }, [sidebarCollapsed]);
 
-  return (
-    <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-      <Header onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed}/>
-      <Sidebar collapsed={sidebarCollapsed} />
-      <main className="page-content">
-        <div className=" mb-5" style={{minHeight:'130px', backgroundImage: 'linear-gradient(90deg, #0d6efd, #145ec6)'}}></div>
-        <div className="full-height m-0">
-          <Outlet />
+    const toggleSidebar = () => setSidebarCollapsed(s => !s);
+
+    return (
+        <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+            <Header onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed} />
+            <Sidebar collapsed={sidebarCollapsed} />
+            <main className="page-content">
+                <div className=" mb-5" style={{ minHeight: '130px', backgroundImage: 'linear-gradient(90deg, #0d6efd, #145ec6)' }}></div>
+                <div className="full-height m-0">
+                    <Outlet />
+                </div>
+            </main>
+            <Footer />
         </div>
-      </main>
-      <Footer />
-    </div>
-  );
+    );
 };
 
 export default Layout;

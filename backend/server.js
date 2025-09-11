@@ -29,34 +29,34 @@ app.use("/auth", authRoutes);
 
 // ---- Captcha ----
 app.get("/captcha", async (req, res) => {
-  try {
-    const token = req.cookies?.auth;
-    const x_fingerprint = req.headers["x-fingerprint"];
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      const sessionKey = `session:${decoded.sid}`;
-      const sessionData = await redis.get(sessionKey);
-      const sessionObj = JSON.parse(sessionData);
-      if (sessionData && x_fingerprint && sessionObj.fingerprint === x_fingerprint) {
-        return res.json({ redirect: true, user: sessionObj.user });
-      }
-    }
+    try {
+        const token = req.cookies?.auth;
+        const x_fingerprint = req.headers["x-fingerprint"];
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+            const sessionKey = `session:${decoded.sid}`;
+            const sessionData = await redis.get(sessionKey);
+            const sessionObj = JSON.parse(sessionData);
+            if (sessionData && x_fingerprint && sessionObj.fingerprint === x_fingerprint) {
+                return res.json({ redirect: true, user: sessionObj.user });
+            }
+        }
 
-    const captcha = Math.floor(10 + Math.random() * 90);
-    res.json({ captcha });
-  } catch (err) {
-    const captcha = Math.floor(10 + Math.random() * 90);
-    res.json({ captcha });
-  }
+        const captcha = Math.floor(10 + Math.random() * 90);
+        res.json({ captcha });
+    } catch (err) {
+        const captcha = Math.floor(10 + Math.random() * 90);
+        res.json({ captcha });
+    }
 });
 
 // ---- React Router catch-all ----
 app.get(/.*/, (req, res) => {
-  console.log("Serving index.html");
-  // res.sendFile(path.join(__dirname, "../dist/index.html"));
+    console.log("Serving index.html");
+    // res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
 // ---- Start server ----
 app.listen(PORT, () => {
-  console.log(`🚀 Auth service running at http://localhost:${PORT}`);
+    console.log(`🚀 Auth service running at http://localhost:${PORT}`);
 });

@@ -1,31 +1,31 @@
 import mysql from "mysql2/promise";
-const pools = {}; 
+const pools = {};
 
 
 async function findUser({ username, disecode, role }) {
-  
-  try {
-    const dbConfig = role === 1 ? "DB1" : "DB2";
 
-    if (!pools[dbConfig]) {
-      pools[dbConfig] = mysql.createPool({
-        host: process.env[`${dbConfig}_HOST`],
-        user: process.env[`${dbConfig}_USER`],
-        password: process.env[`${dbConfig}_PASS`],
-        database: process.env[`${dbConfig}_NAME`],
-      });
-    }
-    const db = pools[dbConfig];
+    try {
+        const dbConfig = role === 1 ? "DB1" : "DB2";
 
-    let rows = [];
+        if (!pools[dbConfig]) {
+            pools[dbConfig] = mysql.createPool({
+                host: process.env[`${dbConfig}_HOST`],
+                user: process.env[`${dbConfig}_USER`],
+                password: process.env[`${dbConfig}_PASS`],
+                database: process.env[`${dbConfig}_NAME`],
+            });
+        }
+        const db = pools[dbConfig];
 
-    if (role === 1) {
-      // Admin
-      const [result] = await db.query("CALL sp_post_user_login(?)", [username]);
-      rows = result[0];
-    } else if (role === 2) {
-      // School
-      const query = `
+        let rows = [];
+
+        if (role === 1) {
+            // Admin
+            const [result] = await db.query("CALL sp_post_user_login(?)", [username]);
+            rows = result[0];
+        } else if (role === 2) {
+            // School
+            const query = `
         SELECT ul.id, s.district_id, d.code AS district_code, d.name AS district_name,
                s.circle_id, c.code AS circle_code, c.name AS circle_name, s.id AS school_id,
                s.disecode, s.name AS school_name, s.email AS school_email, s.landline AS school_landline,
@@ -39,18 +39,18 @@ async function findUser({ username, disecode, role }) {
           AND s.isactive = '1'
           AND ul.isactive = '1'
       `;
-      const [result] = await db.query(query, [disecode]);
-      rows = result;
-    } else if (role === 0) {
-      // Teacher
-      const [result] = await db.query("CALL sp_post_user_login(?)", [username]);
-      rows = result[0];
+            const [result] = await db.query(query, [disecode]);
+            rows = result;
+        } else if (role === 0) {
+            // Teacher
+            const [result] = await db.query("CALL sp_post_user_login(?)", [username]);
+            rows = result[0];
+        }
+        return rows && rows.length > 0 ? { ...rows[0], source: dbConfig } : null;
+    } catch (err) {
+        console.error("Error finding user:", err.message);
+        throw err;
     }
-    return rows && rows.length > 0 ? { ...rows[0], source: dbConfig } : null;
-  } catch (err) {
-    console.error("Error finding user:", err.message);
-    throw err;
-  }
 }
 
 export { findUser };

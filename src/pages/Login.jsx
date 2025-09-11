@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../pages/Login.css";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-import api from "../hooks/axios"; 
+import api from "../hooks/axios";
 import useAuth from "../hooks/useAuth";
 import forge from "node-forge";
 
@@ -29,11 +29,11 @@ const Login = () => {
             setCaptcha(authCaptcha);
         }
     }, [isAuthenticated, authCaptcha, navigate]);
-     useEffect(() => {
+    useEffect(() => {
         fetch("/public.pem")
-        .then((res) => res.text())
-        .then(setPublicKeyPem)
-        .catch((err) => console.error("Failed to load public key:", err));
+            .then((res) => res.text())
+            .then(setPublicKeyPem)
+            .catch((err) => console.error("Failed to load public key:", err));
     }, []);
 
     function encryptPassword(pass) {
@@ -55,10 +55,10 @@ const Login = () => {
             const fingerprint = fp.visitorId;
 
             if (userCaptcha.trim() === captcha.toString().trim()) {
-                const result = await login({username, disecode, encryptedPassword, role, fingerprint});
+                const result = await login({ username, disecode, encryptedPassword, role, fingerprint });
                 setSuccess(result.success);
                 setMessage(result.message);
-                
+
                 if (result.success) {
                     setTimeout(() => {
                         navigate("/dashboard");
@@ -79,7 +79,7 @@ const Login = () => {
             <div className="row h-100">
                 {/* Left side with background image */}
                 <div className="col-12 col-md-6 p-0">
-                    <img className="w-100 h-100" src="/login_page_bg.jpg" alt="School Management System" style={{ objectFit: "cover", maxHeight: "100vh" }}/>
+                    <img className="w-100 h-100" src="/login_page_bg.jpg" alt="School Management System" style={{ objectFit: "cover", maxHeight: "100vh" }} />
                 </div>
 
                 {/* Right side with form */}
@@ -91,17 +91,17 @@ const Login = () => {
                         {/* Radio options */}
                         <div className="mb-3 text-center">
                             <label className={`btn btn-outline-primary me-2 ${role === 0 ? "active" : ""}`}>
-                                <input type="radio" name="role" value={0} className="d-none" checked={role === 0} onChange={(e) => setRole(parseInt(e.target.value))}/>
+                                <input type="radio" name="role" value={0} className="d-none" checked={role === 0} onChange={(e) => setRole(parseInt(e.target.value))} />
                                 <i className="fas fa-user me-2"></i> Teacher
                             </label>
 
                             <label className={`btn btn-outline-primary me-2 ${role === 2 ? "active" : ""}`}>
-                                <input type="radio" name="role" value={2} className="d-none" checked={role === 2} onChange={(e) => setRole(parseInt(e.target.value))}/>
+                                <input type="radio" name="role" value={2} className="d-none" checked={role === 2} onChange={(e) => setRole(parseInt(e.target.value))} />
                                 <i className="fas fa-school me-2"></i> School
                             </label>
 
                             <label className={`btn btn-outline-primary ${role === 1 ? "active" : ""}`}>
-                                <input type="radio" name="role" value={1} className="d-none" checked={role === 1} onChange={(e) => setRole(parseInt(e.target.value))}/>
+                                <input type="radio" name="role" value={1} className="d-none" checked={role === 1} onChange={(e) => setRole(parseInt(e.target.value))} />
                                 <i className="fas fa-user-shield me-2"></i> Administrator
                             </label>
                         </div>
@@ -115,7 +115,7 @@ const Login = () => {
                                 field.roles.includes(role) && (
                                     <div className="mb-3" key={i}>
                                         <label className="form-label">{field.label}</label>
-                                        <input type="text" className="form-control" value={field.state} onChange={(e) => field.setState(e.target.value)}/>
+                                        <input type="text" className="form-control" value={field.state} onChange={(e) => field.setState(e.target.value)} />
                                     </div>
                                 )
                         )}
@@ -150,7 +150,7 @@ const Login = () => {
                                 >
                                     <i className="fas fa-sync-alt fs-3"></i>
                                 </button>
-                                <input type="text" maxLength={6} className="form-control fs-5" placeholder="Enter captcha" value={userCaptcha} onChange={(e) => setUserCaptcha(e.target.value)}/>
+                                <input type="text" maxLength={6} className="form-control fs-5" placeholder="Enter captcha" value={userCaptcha} onChange={(e) => setUserCaptcha(e.target.value)} />
                             </div>
                         </div>
 
