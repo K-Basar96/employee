@@ -30,11 +30,6 @@ const Sidebar = ({ collapsed, user }) => {
           {isExpanded && <span className="ms-2">Dashboard</span>}
         </NavLink>
 
-        {/* {user.designation === "School" && (
-          <NavLink to="/Verification" className="nav-link mb-2" title="Language Setup">
-            <i className="fas fa-user-check"></i>
-            {isExpanded && <span className="ms-2">Language Setup</span>}
-          </NavLink>)} */}
         {user.designation === "School" && (
           <details className="nav-link mb-2">
             <summary className="d-flex align-items-center">
