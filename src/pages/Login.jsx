@@ -6,6 +6,7 @@ import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import api from "../hooks/axios";
 import useAuth from "../hooks/useAuth";
 import forge from "node-forge";
+import Button from '@mui/material/Button';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -134,22 +135,17 @@ const Login = () => {
                         {/* Captcha */}
                         <div className="mb-3">
                             <label className="form-label">Captcha</label>
-                            <div className="d-flex">
-                                <div
-                                    className="me-2 col-md-4 d-flex align-items-center justify-content-center bg-secondary text-dark fw-bold rounded"
-                                    style={{ height: "40px", fontSize: "24px", letterSpacing: "5px" }}
-                                >
-                                    {captcha}
+                            <div className="d-flex flex-md-row flex-column">
+                                <div className="col-12 col-md-6 d-flex">
+                                    <div className="col-9 col-md-9 d-flex justify-content-center bg-secondary text-dark fw-bold rounded"
+                                        style={{ height: "40px", fontSize: "24px", letterSpacing: "5px" }} >
+                                        {captcha}
+                                    </div>
+                                    <button type="button" className="btn btn-link mx-2 p-0 col-md-1"
+                                        onClick={() => api.get("/captcha").then((res) => setCaptcha(res.data.captcha))} >
+                                        <i className="fas fa-sync-alt fs-3"></i>
+                                    </button>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="btn btn-link mx-2 p-0 col-md-1"
-                                    onClick={() =>
-                                        api.get("/captcha").then((res) => setCaptcha(res.data.captcha))
-                                    }
-                                >
-                                    <i className="fas fa-sync-alt fs-3"></i>
-                                </button>
                                 <input type="text" maxLength={6} className="form-control fs-5" placeholder="Enter captcha" value={userCaptcha} onChange={(e) => setUserCaptcha(e.target.value)} />
                             </div>
                         </div>
@@ -165,9 +161,12 @@ const Login = () => {
 
                         {/* Login button */}
                         <div className="d-flex flex-row justify-content-center my-0">
-                            <button onClick={handleLogin} className="btn btn-primary col-md-8">
+                            {/* <button onClick={handleLogin} className="btn btn-primary col-md-8">
                                 Sign in
-                            </button>
+                            </button> */}
+                            <Button className="col-md-8" size="large" variant="contained" color="primary" onClick={handleLogin}>
+                                Sign in
+                            </Button>
                         </div>
 
                         <div className="mt-auto text-center">

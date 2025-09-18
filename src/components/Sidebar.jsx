@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
-import useAuth from '../hooks/useAuth';
 
-const Sidebar = ({ collapsed }) => {
-  const { user } = useAuth();
+const Sidebar = ({ collapsed, user }) => {
   const [hovered, setHovered] = useState(false);
 
   // Sidebar is expanded if not collapsed, or if collapsed but hovered
@@ -13,7 +11,7 @@ const Sidebar = ({ collapsed }) => {
   return (
     <aside className={`app-sidebar ${isExpanded ? 'expanded' : 'collapsed'}`} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div className="sidebar-top text-center" >
-        {isExpanded ? (<> 
+        {isExpanded ? (<>
           <div className="school-name my-4">
             <strong>{user.name}</strong>
             <div className="small text-muted">{user.designation}</div>
@@ -26,35 +24,37 @@ const Sidebar = ({ collapsed }) => {
       </div>
 
       <nav className="nav flex-column p-2">
-        
+
         <NavLink to="/dashboard" className="nav-link mb-2" title="Dashboard">
           <i className="fas fa-home"></i>
           {isExpanded && <span className="ms-2">Dashboard</span>}
         </NavLink>
 
-        {user.designation==="DI/S (SE)" && (
-        <NavLink to="/Verification" className="nav-link mb-2" title="Verification of Eligibility">
-          <i className="fas fa-user-check"></i>
-          {isExpanded && <span className="ms-2">Verification of Eligibility</span>}
-        </NavLink>)}
+        {/* {user.designation === "School" && (
+          <NavLink to="/Verification" className="nav-link mb-2" title="Language Setup">
+            <i className="fas fa-user-check"></i>
+            {isExpanded && <span className="ms-2">Language Setup</span>}
+          </NavLink>)} */}
+        {user.designation === "School" && (
+          <details className="nav-link mb-2">
+            <summary className="d-flex align-items-center">
+              <i className="fas fa-language"></i>
+              {isExpanded && (<span className="ms-2">Language Setup</span>)}
+              <i className="fas fa-chevron-down ms-auto text-dark"></i>
+            </summary>
 
-        {user.designation==="DI/S (SE)" && (
-          <NavLink to="/discontinuity" className="nav-link mb-2" title="Proposal of Member's discontinuity">
-          <i className="fas fa-file-alt"></i>
-          {isExpanded && <span className="ms-2">Proposal of Member's discontinuity</span>}
-        </NavLink>)}
-
-        {user.designation==="SED" && (
-          <NavLink to="/mc_status" className="nav-link mb-2" title="Managing Committee Status">
-            <i className="fas fa-users-cog"></i>
-            {isExpanded && <span className="ms-2">Managing Committee Status</span>}
-          </NavLink>)}
-
-        {user.designation==="DI/S (SE)" && (
-        <NavLink to="/uploaded" className="nav-link mb-2" title="Uploaded Data">
-          <i className="fas fa-upload"></i>
-          {isExpanded && <span className="ms-2">Uploaded Data</span>}
-        </NavLink>)}
+            <div className=" flex-column mt-2">
+              <NavLink to="/language/school" className="nav-link">
+                <i className="fas fa-school"></i>
+                {isExpanded && <span className='mx-2'>School Language</span>}
+              </NavLink>
+              <NavLink to="/language/student" className="nav-link">
+                <i className='fas fa-book-reader'></i>
+                {isExpanded && <span className='mx-2'>Student Language</span>}
+              </NavLink>
+            </div>
+          </details>
+        )}
 
         <NavLink to="/sign" className="nav-link mb-2" title="Signature">
           <i className="fas fa-pen-fancy"></i>

@@ -5,8 +5,10 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
+import useAuth from '../hooks/useAuth';
 
 const Layout = () => {
+    const { user } = useAuth();
     // useAntiDevTools(); // Block browser devtools.
 
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -22,12 +24,12 @@ const Layout = () => {
 
     return (
         <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-            <Header onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed} />
-            <Sidebar collapsed={sidebarCollapsed} />
+            <Header onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed} user={user} />
+            <Sidebar collapsed={sidebarCollapsed} user={user} />
             <main className="page-content">
                 <div className=" mb-5" style={{ minHeight: '130px', backgroundImage: 'linear-gradient(90deg, #0d6efd, #145ec6)' }}></div>
                 <div className="full-height m-0">
-                    <Outlet />
+                    <Outlet context={{ user }} />
                 </div>
             </main>
             <Footer />

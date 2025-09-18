@@ -19,21 +19,19 @@ const useAuth = (redirectToLogin = false) => {
     const checkAuth = async () => {
         try {
             if (authCheckInProgress) {
-                await authCheckInProgress;
-                return;
+                return authCheckInProgress;
             }
             authCheckInProgress = (async () => {
                 try {
                     const res = await api.get("/captcha");
                     if (res.data.redirect) {
                         if (!user) {
+                            setUser(res.data.user);
                             localStorage.setItem("user", JSON.stringify(res.data.user));
-                            const userData = localStorage.getItem("user");
-                            if (userData) {
-                                setUser(JSON.parse(userData));
-                            }
                         }
-                        if (captcha) setCaptcha("");
+                        if (captcha !== "") {
+                            setCaptcha("");
+                        }
                     } else {
                         if (user) {
                             localStorage.clear();

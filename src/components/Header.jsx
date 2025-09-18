@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../hooks/axios"; 
+import api from "../hooks/axios";
 import useAuth from "../hooks/useAuth";
 
-const Header = ({ onToggleSidebar, collapsed, hovered }) => {
+const Header = ({ onToggleSidebar, collapsed, hovered, user }) => {
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(true);
   const navigate = useNavigate();
-  const {logout} = useAuth();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     const result = await logout();
@@ -25,10 +25,8 @@ const Header = ({ onToggleSidebar, collapsed, hovered }) => {
     <header className="app-header d-flex align-items-center px-3">
       <div className="header-left d-flex align-items-center">
         {isExpanded && (
-          <div
-            className={`brand mx-5 ${collapsed && !hovered ? "collapsed" : ""}`}
-          >
-            <img src="./sms_logo.png" alt="logo" style={{ height: 34 }} />
+          <div className={`brand mx-5 ${collapsed && !hovered ? "collapsed" : ""}`}>
+            <img src="/sms_logo.png" alt="logo" style={{ height: 34 }} />
           </div>
         )}
         <button
@@ -38,7 +36,11 @@ const Header = ({ onToggleSidebar, collapsed, hovered }) => {
         >
           <i className="fas fa-bars fa-lg text-light"></i>
         </button>
-        <div className="region text-uppercase">KALIMPONG</div>
+        <div className="fw-bold text-uppercase">
+          {user.designation === "School" && (
+            <div>{user.name}({user.disecode}), {user.district_name}</div>
+          )}
+        </div>
       </div>
 
       <div className="ms-auto d-flex align-items-center gap-3">

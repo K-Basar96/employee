@@ -25,21 +25,21 @@ async function findUser({ username, disecode, role }) {
             rows = result[0];
         } else if (role === 2) {
             // School
-            const query = `
-        SELECT ul.id, s.district_id, d.code AS district_code, d.name AS district_name,
+            const query = `SELECT ul.id, s.district_id, d.code AS district_code, d.name AS district_name,
                s.circle_id, c.code AS circle_code, c.name AS circle_name, s.id AS school_id,
-               s.disecode, s.name AS school_name, s.email AS school_email, s.landline AS school_landline,
+               s.disecode, s.name AS name, s.email AS school_email, s.landline AS school_landline,
                s.mobile AS school_mobile, ul.password
-        FROM user_login ul
-        JOIN school s ON s.disecode = ul.username
-        JOIN district d ON d.id = s.district_id
-        JOIN circle c ON c.id = s.circle_id
-        WHERE ul.username = ?
-          AND ul.teacher_id = 0
-          AND s.isactive = '1'
-          AND ul.isactive = '1'
-      `;
+            FROM user_login ul
+                JOIN school s ON s.disecode = ul.username
+                JOIN district d ON d.id = s.district_id
+                JOIN circle c ON c.id = s.circle_id
+            WHERE ul.username = ?
+                AND ul.teacher_id = 0
+                AND s.isactive = '1'
+                AND ul.isactive = '1'
+            `;
             const [result] = await db.query(query, [disecode]);
+            result[0].designation = 'School';
             rows = result;
         } else if (role === 0) {
             // Teacher

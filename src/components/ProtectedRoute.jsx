@@ -4,9 +4,8 @@ import { Navigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
 const ProtectedRoute = ({ children }) => {
-    const { loading, isAuthenticated, checkAuth } = useAuth(false);
+    const { loading, isAuthenticated, checkAuth, user } = useAuth(false);
     const location = useLocation();
-
     useEffect(() => {
         checkAuth();
     }, [location.pathname]);
@@ -25,6 +24,7 @@ const ProtectedRoute = ({ children }) => {
         localStorage.clear();
         return <Navigate to="/" replace />;
     }
+    return React.cloneElement(children, { user });
     return children;
 };
 export default ProtectedRoute;
