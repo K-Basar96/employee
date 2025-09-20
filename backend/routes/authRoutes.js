@@ -9,12 +9,4 @@ router.post("/login", login);
 router.post("/refresh", refresh); // refresh doesn’t need requireAuth, it uses refreshToken cookie
 router.post("/logout", requireAuth, logout);
 
-// Get logged-in user
-// router.get("/me", requireAuth, (req, res) => {
-//   if (!req.user) {
-//     return res.status(401).json({ success: false, message: "Unauthorized" });
-//   }
-//   res.json({ success: true, user: req.user });
-// });
-
 export default router;

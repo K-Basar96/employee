@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import languageRoutes from "./language/routes/languageRoutes.js"
 import jwt from "jsonwebtoken";
 import redis from "./redisClient.js";
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, "../dist")));
 
 // ---- Routes ----
 app.use("/auth", authRoutes);
+app.use("/language", languageRoutes);
 
 // ---- Captcha ----
 app.get("/captcha", async (req, res) => {

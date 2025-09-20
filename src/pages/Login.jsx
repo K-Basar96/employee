@@ -161,9 +161,6 @@ const Login = () => {
 
                         {/* Login button */}
                         <div className="d-flex flex-row justify-content-center my-0">
-                            {/* <button onClick={handleLogin} className="btn btn-primary col-md-8">
-                                Sign in
-                            </button> */}
                             <Button className="col-md-8" size="large" variant="contained" color="primary" onClick={handleLogin}>
                                 Sign in
                             </Button>
