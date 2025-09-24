@@ -86,7 +86,7 @@ export async function schoollanguage({ academic_year_id, school_id, medium_id, c
 
         if (baseRows.length === 0) return [];
 
-        const classIds = baseRows.map(r => r.class_id);
+        // const classIds = baseRows.map(r => r.class_id);
 
         // Step 2: Fetch selected school languages
         const [selectedLangs] = await db.execute(`SELECT class_id, first_language, second_language, third_language, opt_elec_subject FROM school_language
@@ -134,6 +134,87 @@ export async function schoollanguage({ academic_year_id, school_id, medium_id, c
         return baseRows[0];
     } catch (err) {
         console.error("Error finding classes:", err.message);
+        throw err;
+    }
+}
+
+export async function save_school_lang({ academic_year_id, school_id, medium_id, class_id, selectedLangs }) {
+    //Insert school_language table
+    console.log(selectedLangs['fl_id']);
+
+    try {
+        const created = new Date().toISOString().slice(0, 10);
+        const first_language_list = selectedLangs.fl_id;
+        const second_language_list = selectedLangs.sl_id;
+        const third_language_list = selectedLangs.tl_id;
+        const optional_subject_list = selectedLangs.opt_id;
+        const dbConfig = "DB3";
+        if (!pools[dbConfig]) {
+            pools[dbConfig] = mysql.createPool({
+                host: process.env[`${dbConfig}_HOST`],
+                user: process.env[`${dbConfig}_USER`],
+                password: process.env[`${dbConfig}_PASS`],
+                database: process.env[`${dbConfig}_NAME`],
+            });
+        }
+        const db = pools[dbConfig];
+
+        console.log(created);
+        process.exit(1);
+        if (first_language_list) {
+            // Check if record exists
+            const [rows] = await connection.query(
+                `SELECT id FROM school_language 
+                 WHERE academic_year_id = ? AND school_id = ? AND medium_id = ? AND class_id = ?`,
+                [academic_year_id, school_id, medium_id, class_id]
+            );
+            if (rows.length > 0) {
+                // Update existing record
+                await connection.query(
+                    `UPDATE school_language 
+                     SET first_language = ?, 
+                         second_language = ?, 
+                         third_language = ?, 
+                         opt_elec_subject = ?, 
+                         created = ? 
+                     WHERE academic_year_id = ? AND school_id = ? AND medium_id = ? AND class_id = ?`,
+                    [
+                        first_language_list,
+                        second_language_list,
+                        third_language_list,
+                        optional_subject_list,
+                        created,
+                        academic_year_id,
+                        school_id,
+                        medium_id,
+                        class_id
+                    ]
+                );
+            } else {
+                // Insert new record
+                await connection.query(
+                    `INSERT INTO school_language 
+                        (created, academic_year_id, school_id, medium_id, class_id, first_language, second_language, third_language, opt_elec_subject)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        created,
+                        academic_year_id,
+                        school_id,
+                        medium_id,
+                        class_id,
+                        first_language_list,
+                        second_language_list,
+                        third_language_list,
+                        optional_subject_list
+                    ]
+                );
+            }
+        }
+
+        await connection.commit();
+        return { success: true, message: "School language saved successfully" };
+    } catch (error) {
+        console.error("Not saved:", err.message);
         throw err;
     }
 }

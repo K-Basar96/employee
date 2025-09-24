@@ -83,7 +83,20 @@ const SchoolLanguage = () => {
 
     const handleSave = async (e) => {
         e.preventDefault();
-        console.table(languageData);
+
+        try {
+            const res = await api.post("/language/school/save", {
+                languageData
+            });
+            if (res.data.success) {
+                // console.table(res.data.result);
+                setLanguageData(res.data.result);
+            } else {
+                console.error("Search failed:", res.data.message);
+            }
+        } catch (err) {
+            console.error("Error during search:", err);
+        }
     }
 
     return (

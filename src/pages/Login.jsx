@@ -48,7 +48,8 @@ const Login = () => {
         return forge.util.encode64(encrypted);
     }
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
+        e.preventDefault();
         const encryptedPassword = encryptPassword(password);
         try {
             let fp = await FingerprintJS.load();
@@ -89,82 +90,84 @@ const Login = () => {
                         <div className="mb-auto"></div>
                         <h3 className="form-label d-block text-center">Login As</h3>
 
-                        {/* Radio options */}
-                        <div className="mb-3 text-center">
-                            <label className={`btn btn-outline-primary me-2 ${role === 0 ? "active" : ""}`}>
-                                <input type="radio" name="role" value={0} className="d-none" checked={role === 0} onChange={(e) => setRole(parseInt(e.target.value))} />
-                                <i className="fas fa-user me-2"></i> Teacher
-                            </label>
+                        <form onSubmit={handleLogin}>
+                            {/* Radio options */}
+                            <div className="mb-3 text-center">
+                                <label className={`btn btn-outline-primary me-2 ${role === 0 ? "active" : ""}`}>
+                                    <input type="radio" name="role" value={0} className="d-none" checked={role === 0} onChange={(e) => setRole(parseInt(e.target.value))} />
+                                    <i className="fas fa-user me-2"></i> Teacher
+                                </label>
 
-                            <label className={`btn btn-outline-primary me-2 ${role === 2 ? "active" : ""}`}>
-                                <input type="radio" name="role" value={2} className="d-none" checked={role === 2} onChange={(e) => setRole(parseInt(e.target.value))} />
-                                <i className="fas fa-school me-2"></i> School
-                            </label>
+                                <label className={`btn btn-outline-primary me-2 ${role === 2 ? "active" : ""}`}>
+                                    <input type="radio" name="role" value={2} className="d-none" checked={role === 2} onChange={(e) => setRole(parseInt(e.target.value))} />
+                                    <i className="fas fa-school me-2"></i> School
+                                </label>
 
-                            <label className={`btn btn-outline-primary ${role === 1 ? "active" : ""}`}>
-                                <input type="radio" name="role" value={1} className="d-none" checked={role === 1} onChange={(e) => setRole(parseInt(e.target.value))} />
-                                <i className="fas fa-user-shield me-2"></i> Administrator
-                            </label>
-                        </div>
-
-                        {/* Role-based fields */}
-                        {[
-                            { roles: [0, 1], label: "Username", state: username, setState: setUsername },
-                            { roles: [0, 2], label: "Disecode", state: disecode, setState: setDisecode },
-                        ].map(
-                            (field, i) =>
-                                field.roles.includes(role) && (
-                                    <div className="mb-3" key={i}>
-                                        <label className="form-label">{field.label}</label>
-                                        <input type="text" className="form-control" value={field.state} onChange={(e) => field.setState(e.target.value)} />
-                                    </div>
-                                )
-                        )}
-
-                        {/* Common Password */}
-                        <div className="mb-3">
-                            <label className="form-label">Password</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-
-                        {/* Captcha */}
-                        <div className="mb-3">
-                            <label className="form-label">Captcha</label>
-                            <div className="d-flex flex-md-row flex-column">
-                                <div className="col-12 col-md-6 d-flex">
-                                    <div className="col-9 col-md-9 d-flex justify-content-center bg-secondary text-dark fw-bold rounded"
-                                        style={{ height: "40px", fontSize: "24px", letterSpacing: "5px" }} >
-                                        {captcha}
-                                    </div>
-                                    <button type="button" className="btn btn-link mx-2 p-0 col-md-1"
-                                        onClick={() => api.get("/captcha").then((res) => setCaptcha(res.data.captcha))} >
-                                        <i className="fas fa-sync-alt fs-3"></i>
-                                    </button>
-                                </div>
-                                <input type="text" maxLength={6} className="form-control fs-5" placeholder="Enter captcha" value={userCaptcha} onChange={(e) => setUserCaptcha(e.target.value)} />
+                                <label className={`btn btn-outline-primary ${role === 1 ? "active" : ""}`}>
+                                    <input type="radio" name="role" value={1} className="d-none" checked={role === 1} onChange={(e) => setRole(parseInt(e.target.value))} />
+                                    <i className="fas fa-user-shield me-2"></i> Administrator
+                                </label>
                             </div>
-                        </div>
 
-                        {/* Error message */}
-                        {!success && (
-                            <div className="alert alert-danger py-2">
-                                <div className="text-center text-danger fw-bold w-100 fs-6">
-                                    {message}
+                            {/* Role-based fields */}
+                            {[
+                                { roles: [0, 1], label: "Username", state: username, setState: setUsername },
+                                { roles: [0, 2], label: "Disecode", state: disecode, setState: setDisecode },
+                            ].map(
+                                (field, i) =>
+                                    field.roles.includes(role) && (
+                                        <div className="mb-3" key={i}>
+                                            <label className="form-label">{field.label}</label>
+                                            <input type="text" className="form-control" value={field.state} onChange={(e) => field.setState(e.target.value)} />
+                                        </div>
+                                    )
+                            )}
+
+                            {/* Common Password */}
+                            <div className="mb-3">
+                                <label className="form-label">Password</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+
+                            {/* Captcha */}
+                            <div className="mb-3">
+                                <label className="form-label">Captcha</label>
+                                <div className="d-flex flex-md-row flex-column">
+                                    <div className="col-12 col-md-6 d-flex">
+                                        <div className="col-9 col-md-9 d-flex justify-content-center bg-secondary text-dark fw-bold rounded"
+                                            style={{ height: "40px", fontSize: "24px", letterSpacing: "5px" }} >
+                                            {captcha}
+                                        </div>
+                                        <button type="button" className="btn btn-link mx-2 p-0 col-md-1"
+                                            onClick={() => api.get("/captcha").then((res) => setCaptcha(res.data.captcha))} >
+                                            <i className="fas fa-sync-alt fs-3"></i>
+                                        </button>
+                                    </div>
+                                    <input type="text" maxLength={6} className="form-control fs-5" placeholder="Enter captcha" value={userCaptcha} onChange={(e) => setUserCaptcha(e.target.value)} />
                                 </div>
                             </div>
-                        )}
 
-                        {/* Login button */}
-                        <div className="d-flex flex-row justify-content-center my-0">
-                            <Button className="col-md-8" size="large" variant="contained" color="primary" onClick={handleLogin}>
-                                Sign in
-                            </Button>
-                        </div>
+                            {/* Error message */}
+                            {!success && (
+                                <div className="alert alert-danger py-2">
+                                    <div className="text-center text-danger fw-bold w-100 fs-6">
+                                        {message}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Login button */}
+                            <div className="d-flex flex-row justify-content-center my-0">
+                                <Button type="submit" className="col-md-8" size="large" variant="contained" color="primary">
+                                    Sign in
+                                </Button>
+                            </div>
+                        </form>
 
                         <div className="mt-auto text-center">
                             <p className="mb-5">
