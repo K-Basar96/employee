@@ -51,6 +51,7 @@ const SchoolLanguage = () => {
                 class_id: selectedClass,
             });
             if (res.data.success) {
+                // console.table(res.data.result);
                 setLanguageData(res.data.result);
             } else {
                 console.error("Search failed:", res.data.message);
@@ -64,23 +65,25 @@ const SchoolLanguage = () => {
         setLanguageData(null);
     }
 
-    const handleCheckboxChange = async (e) => {
-        const updatedList = [...languageList];
+    const handleCheckboxChange = (e, type) => {
         const id = e.target.value;
         const checked = e.target.checked;
 
-        let selectedIds = updatedList[classIndex][type]?.split(",") || [];
+        const updatedData = { ...languageData };
+        let selectedIds = updatedData[type]?.split(",") || [];
         if (checked) {
             if (!selectedIds.includes(id)) selectedIds.push(id);
         } else {
             selectedIds = selectedIds.filter((x) => x !== id);
         }
-        updatedList[classIndex][type] = selectedIds.join(",");
-        setLanguageList(updatedList);
-    }
+
+        updatedData[type] = selectedIds.join(",");
+        setLanguageData(updatedData);
+    };
 
     const handleSave = async (e) => {
         e.preventDefault();
+        console.table(languageData);
     }
 
     return (
@@ -128,63 +131,63 @@ const SchoolLanguage = () => {
                     </form>
 
                     {languageData && (
-                        <table className="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>CLASS</th>
-                                    <th>FIRST LANGUAGE</th>
-                                    <th>SECOND LANGUAGE</th>
-                                    <th>THIRD LANGUAGE</th>
-                                    <th>OPTIONAL/ELECTIVE</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[languageData].map((lang, idx) => {
-                                    const types = [
-                                        { key: "first_language", label: "First Language", idKey: "fl_id" },
-                                        { key: "second_language", label: "Second Language", idKey: "sl_id" },
-                                        { key: "third_language", label: "Third Language", idKey: "tl_id" },
-                                        { key: "opt_elec_subject", label: "Optional/Elective", idKey: "opt_id" },
-                                    ];
-                                    return (
-                                        <tr key={lang.class_id}>
-                                            <td>{lang.class_name}</td>
-                                            {types.map((t) => {
-                                                const names = lang[t.key]?.split(",") || [];
-                                                const ids = lang[t.key + "_id"]?.split(",") || [];
-                                                const selectedIds = lang[t.idKey]?.split(",") || [];
-                                                return (
-                                                    <td key={t.key}>
-                                                        {names.map((name, i) => {
-                                                            const id = ids[i];
-                                                            const checked = selectedIds.includes(id);
-                                                            return (
-                                                                <div className="form-check" key={id}>
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        className="form-check-input"
-                                                                        value={id}
-                                                                        id={`chk_${lang.class_id}_${id}_${t.key}`}
-                                                                    // checked={checked}
-                                                                    // onChange={(e) => handleCheckboxChange(e, idx, t.key)}
-                                                                    />
-                                                                    <label
-                                                                        className="form-check-label"
-                                                                        htmlFor={`chk_${lang.class_id}_${id}_${t.key}`}
-                                                                    >
-                                                                        {name}
-                                                                    </label>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                        <form className='col-md-12 m-2' onSubmit={handleSave}>
+                            <table className="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>CLASS</th>
+                                        <th>FIRST LANGUAGE</th>
+                                        <th>SECOND LANGUAGE</th>
+                                        <th>THIRD LANGUAGE</th>
+                                        <th>OPTIONAL/ELECTIVE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[languageData].map((lang, idx) => {
+                                        const types = [
+                                            { key: "first_language", label: "First Language", idKey: "fl_id" },
+                                            { key: "second_language", label: "Second Language", idKey: "sl_id" },
+                                            { key: "third_language", label: "Third Language", idKey: "tl_id" },
+                                            { key: "opt_elec_subject", label: "Optional/Elective", idKey: "opt_id" },
+                                        ];
+                                        return (
+                                            <tr key={lang.class_id}>
+                                                <td>{lang.class_name}</td>
+                                                {types.map((t) => {
+                                                    const names = lang[t.key]?.split(",") || [];
+                                                    const ids = lang[t.key + "_id"]?.split(",") || [];
+                                                    const selectedIds = lang[t.idKey]?.split(",") || [];
+                                                    return (
+                                                        <td key={t.key}>
+                                                            {names.map((name, i) => {
+                                                                const id = ids[i];
+                                                                const checked = selectedIds.includes(id);
+                                                                return (
+                                                                    <div className="form-check" key={id}>
+                                                                        <input type="checkbox" className="form-check-input" value={id}
+                                                                            id={`chk_${lang.class_id}_${id}_${t.key}`}
+                                                                            checked={checked} onChange={(e) => handleCheckboxChange(e, t.idKey)}
+                                                                        />
+                                                                        <label className="form-check-label" htmlFor={`chk_${lang.class_id}_${id}_${t.key}`}>
+                                                                            {name}
+                                                                        </label>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                            <div className='float-end mx-5'>
+                                <Button type="submit" variant="contained" color="primary" size="large">
+                                    <i className="fa-solid fa-save"></i>Save
+                                </Button>
+                            </div>
+                        </form>
                     )}
 
                 </div>

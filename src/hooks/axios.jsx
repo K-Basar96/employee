@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle expired access tokens automatically
+// Handle expired access tokens automatically and redirect to login
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -45,7 +45,8 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // Handle both 401 (Unauthorized) and 403 (Forbidden)
+        if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
             if (isRefreshing) {
                 return new Promise(function (resolve, reject) {
                     failedQueue.push({ resolve, reject });
@@ -66,7 +67,10 @@ api.interceptors.response.use(
                 processQueue(null);
                 return api(originalRequest); // retry request
             } catch (err) {
+                // Clear auth data and redirect to login on refresh failure
+                localStorage.clear();
                 processQueue(err, null);
+                window.location.href = "/";
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;

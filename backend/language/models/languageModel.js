@@ -90,7 +90,7 @@ export async function schoollanguage({ academic_year_id, school_id, medium_id, c
 
         // Step 2: Fetch selected school languages
         const [selectedLangs] = await db.execute(`SELECT class_id, first_language, second_language, third_language, opt_elec_subject FROM school_language
-        WHERE academic_year_id = ? AND school_id = ? AND class_id IN (?) AND medium_id = ?`, [academic_year_id, school_id, classIds, medium_id]);
+        WHERE academic_year_id = ? AND school_id = ? AND class_id IN (?) AND medium_id = ?`, [academic_year_id, school_id, class_id, medium_id]);
 
         // Step 3: Aggregate all language IDs
         let totalLangIds = [];
