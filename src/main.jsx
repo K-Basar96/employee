@@ -7,12 +7,15 @@ import './index.css';
 import App from './App.jsx';
 import store from './redux/store.js';
 import { Provider } from 'react-redux';
+import { Notifier } from "./components/Notifier.jsx";
 
 createRoot(document.getElementById('root')).render(
     <Provider store={store}>
         <StrictMode>
             <BrowserRouter>
-                <App />
+                <Notifier>
+                    <App />
+                </Notifier>
             </BrowserRouter>
         </StrictMode>
     </Provider>,

@@ -39,7 +39,7 @@ async function findUser({ username, disecode, role }) {
                 AND ul.isactive = '1'
             `;
             const [result] = await db.query(query, [disecode]);
-            result[0].designation = 'School';
+            if (result[0]) { result[0].designation = 'School'; }
             rows = result;
         } else if (role === 0) {
             // Teacher

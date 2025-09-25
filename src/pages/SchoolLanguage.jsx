@@ -1,9 +1,11 @@
 import Button from '@mui/material/Button';
 import api from "../hooks/axios";
+import { useNotifier } from "../components/Notifier";
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from "react-router-dom";
 
 const SchoolLanguage = () => {
+    const notify = useNotifier();
 
     const [medium, setMedium] = useState([]);
     const [classes, setClasses] = useState([]);
@@ -63,6 +65,7 @@ const SchoolLanguage = () => {
 
     const handleReset = async (e) => {
         setLanguageData(null);
+        notify("Searching form reset successfully!", "warning");
     }
 
     const handleCheckboxChange = (e, type) => {
@@ -89,13 +92,13 @@ const SchoolLanguage = () => {
                 languageData
             });
             if (res.data.success) {
-                // console.table(res.data.result);
-                setLanguageData(res.data.result);
+                notify("Saved successfully!", "success");
+                setLanguageData(languageData);
             } else {
-                console.error("Search failed:", res.data.message);
+                notify("Save failed. Please try again.", "error");
             }
         } catch (err) {
-            console.error("Error during search:", err);
+            notify("Error during save!", "error");
         }
     }
 

@@ -7,8 +7,10 @@ import api from "../hooks/axios";
 import useAuth from "../hooks/useAuth";
 import forge from "node-forge";
 import Button from '@mui/material/Button';
+import { useNotifier } from "../components/Notifier";
 
 const Login = () => {
+    const notify = useNotifier();
     const navigate = useNavigate();
     const [publicKeyPem, setPublicKeyPem] = useState("");
     const [captcha, setCaptcha] = useState("");
@@ -17,8 +19,6 @@ const Login = () => {
     const [username, setUsername] = useState("");
     const [disecode, setDisecode] = useState("");
     const [password, setPassword] = useState("");
-    const [message, setMessage] = useState("");
-    const [success, setSuccess] = useState(true);
 
     const { loading, isAuthenticated, captcha: authCaptcha, login } = useAuth(true);
 
@@ -58,21 +58,20 @@ const Login = () => {
 
             if (userCaptcha.trim() === captcha.toString().trim()) {
                 const result = await login({ username, disecode, encryptedPassword, role, fingerprint });
-                setSuccess(result.success);
-                setMessage(result.message);
 
                 if (result.success) {
+                    notify(result.message, "success");
                     setTimeout(() => {
                         navigate("/dashboard");
                     }, 1000);
+                } else {
+                    notify(result.message || "Invalid username or password", "error");
                 }
             } else {
-                setSuccess(false);
-                setMessage("Captcha is incorrect!");
+                notify("Captcha is incorrect!", "error");
             }
         } catch (error) {
-            setSuccess(false);
-            setMessage("Something went wrong during login!");
+            notify("Something went wrong during login!", "error");
         }
     };
 
@@ -126,10 +125,7 @@ const Login = () => {
                             {/* Common Password */}
                             <div className="mb-3">
                                 <label className="form-label">Password</label>
-                                <input
-                                    type="password"
-                                    className="form-control"
-                                    value={password}
+                                <input type="password" className="form-control" value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
                             </div>
@@ -152,14 +148,6 @@ const Login = () => {
                                 </div>
                             </div>
 
-                            {/* Error message */}
-                            {!success && (
-                                <div className="alert alert-danger py-2">
-                                    <div className="text-center text-danger fw-bold w-100 fs-6">
-                                        {message}
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Login button */}
                             <div className="d-flex flex-row justify-content-center my-0">

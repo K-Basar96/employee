@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import api from "./axios";
 import { useDispatch } from "react-redux";
 import { session_token } from "../redux/action";
+import { useNotifier } from "../components/Notifier";
 
 // Create a singleton pattern to track ongoing auth checks
 let authCheckInProgress = null;
 
 const useAuth = (redirectToLogin = false) => {
+    const notify = useNotifier();
     const dispatch = useDispatch();
     const [user, setUser] = useState(() => {
         const userData = localStorage.getItem("user");
@@ -65,9 +67,10 @@ const useAuth = (redirectToLogin = false) => {
             const { data } = await api.post("/auth/logout");
             localStorage.clear();
             setUser(null);
+            notify(data?.message, 'success');
             return { success: true, message: data?.message };
         } catch (error) {
-            console.error("Logout failed:", error);
+            notify("Logout failed!", 'error');
             return { success: false, message: "Something went wrong during logout!" };
         }
     };
@@ -86,7 +89,7 @@ const useAuth = (redirectToLogin = false) => {
             }
             return { success: false, message: data.message || "Login failed" };
         } catch (error) {
-            console.error("Login failed:", error);
+            notify("Login failed!", 'error');
             return { success: false, message: "Something went wrong!" };
         }
     };
