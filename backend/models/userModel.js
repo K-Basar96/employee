@@ -5,7 +5,7 @@ const pools = {};
 async function findUser({ username, disecode, role }) {
 
     try {
-        const dbConfig = role === 1 ? "DB1" : "DB2";
+        const dbConfig = role === 1 ? "DB1" : "DB3";
 
         if (!pools[dbConfig]) {
             pools[dbConfig] = mysql.createPool({

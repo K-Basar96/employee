@@ -110,14 +110,20 @@ const Login = () => {
 
                             {/* Role-based fields */}
                             {[
-                                { roles: [0, 1], label: "Username", state: username, setState: setUsername },
-                                { roles: [0, 2], label: "Disecode", state: disecode, setState: setDisecode },
+                                {
+                                    roles: [0, 1], label: "Username", state: username, setState: setUsername,
+                                    onInput: e => e.target.value = e.target.value.toUpperCase()
+                                },
+                                {
+                                    roles: [0, 2], label: "Disecode", state: disecode, setState: setDisecode, maxLength: 11,
+                                    onInput: e => e.target.value = e.target.value.replace(/\D/g, '')
+                                },
                             ].map(
                                 (field, i) =>
                                     field.roles.includes(role) && (
                                         <div className="mb-3" key={i}>
                                             <label className="form-label">{field.label}</label>
-                                            <input type="text" className="form-control" value={field.state} onChange={(e) => field.setState(e.target.value)} />
+                                            <input type="text" className="form-control" value={field.state} minLength={field.maxLength} maxLength={field.maxLength} onInput={field.onInput} onChange={(e) => field.setState(e.target.value)} />
                                         </div>
                                     )
                             )}

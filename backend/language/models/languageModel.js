@@ -27,7 +27,7 @@ export async function getMediumList({ academic_year_id, school_id }) {
 
 export async function getClassList({ academic_year_id, school_id, medium_id }) {
     try {
-        const dbConfig = "DB2";
+        const dbConfig = "DB3";
         if (!pools[dbConfig]) {
             pools[dbConfig] = mysql.createPool({
                 host: process.env[`${dbConfig}_HOST`],
@@ -45,6 +45,37 @@ export async function getClassList({ academic_year_id, school_id, medium_id }) {
         return rows && rows.length > 0 ? rows : [];
     } catch (err) {
         console.error("Error finding classes:", err.message);
+        throw err;
+    }
+}
+
+export async function getSectionList({ academic_year_id, school_id, medium_id, class_id }) {
+    try {
+        const dbConfig = "DB3";
+        if (!pools[dbConfig]) {
+            pools[dbConfig] = mysql.createPool({
+                host: process.env[`${dbConfig}_HOST`],
+                user: process.env[`${dbConfig}_USER`],
+                password: process.env[`${dbConfig}_PASS`],
+                database: process.env[`${dbConfig}_NAME`],
+            });
+        }
+        const db = pools[dbConfig];
+
+        const query = `
+            SELECT DISTINCT s.id, s.code AS name FROM school_student ss
+            JOIN section s ON FIND_IN_SET(s.id, ss.section_id) > 0
+            WHERE ss.isactive = 1 
+                AND s.isactive = 1 
+                AND ss.academic_year_id = ?
+                AND ss.school_id = ?
+                AND ss.medium_id = ?
+                AND ss.class_id = ?`
+            ;
+        const [rows] = await db.query(query, [academic_year_id, school_id, medium_id, class_id]);
+        return rows && rows.length > 0 ? rows : [];
+    } catch (err) {
+        console.error("Error finding sections:", err.message);
         throw err;
     }
 }
@@ -307,5 +338,65 @@ export async function save_school_lang({ academic_year_id, school_id, medium_id,
         await conn.rollback();
         console.error("Error saving school language:", err.message);
         return { success: false, message: "Save failed", error: err.message };
+    }
+}
+
+export async function getStudentList({ academic_year_id, school_id, medium_id, class_id, section_id }) {
+    try {
+        const dbConfig = "DB3";
+        if (!pools[dbConfig]) {
+            pools[dbConfig] = mysql.createPool({
+                host: process.env[`${dbConfig}_HOST`],
+                user: process.env[`${dbConfig}_USER`],
+                password: process.env[`${dbConfig}_PASS`],
+                database: process.env[`${dbConfig}_NAME`],
+            });
+        }
+        const db = pools[dbConfig];
+
+        const query = `SELECT DISTINCT ss.school_id, ss.medium_id, ss.class_id, sl.first_language AS first_language_id, ss.roll_no, sec.code,
+                sl.second_language AS second_language_id, sl.third_language AS third_language_id, sl.opt_elec_subject AS opt_elec_subject_id,
+                GROUP_CONCAT(DISTINCT s1.name ORDER BY s1.id) AS first_language, GROUP_CONCAT(DISTINCT s2.name ORDER BY s2.id) AS second_language,
+                GROUP_CONCAT(DISTINCT s3.name ORDER BY s3.id) AS third_language, GROUP_CONCAT(DISTINCT s4.name ORDER BY s4.id) AS opt_elec_subject, c.code AS class_name, 
+                s.name AS student, _ssl.student_id, _ssl.second_language AS s_id, _ssl.first_language AS f_id, _ssl.third_language AS t_id, _ssl.opt_elec_subject AS opt_id
+            FROM school_student ss
+            LEFT JOIN school_student_language _ssl ON ss.student_id = _ssl.student_id AND _ssl.school_id = ss.school_id AND _ssl.academic_year_id = ?
+            JOIN class c ON c.id = ss.class_id 
+            JOIN student s ON s.id = ss.student_id
+            JOIN section sec ON sec.id = ss.section_id
+            LEFT JOIN school_language sl ON sl.school_id = ss.school_id AND sl.medium_id = ss.medium_id AND sl.class_id = ss.class_id AND sl.academic_year_id = ?
+            LEFT JOIN subject s1 ON FIND_IN_SET(s1.id, sl.first_language) > 0
+            LEFT JOIN subject s2 ON FIND_IN_SET(s2.id, sl.second_language) > 0
+            LEFT JOIN subject s3 ON FIND_IN_SET(s3.id, sl.third_language) > 0
+            LEFT JOIN subject s4 ON FIND_IN_SET(s4.id, sl.opt_elec_subject) > 0
+            WHERE _ssl.student_id = s.id 
+                AND _ssl.medium_id = ss.medium_id 
+                AND _ssl.class_id = ss.class_id
+                AND ss.academic_year_id = ?
+                AND ss.school_id = ?
+                AND ss.medium_id = ?
+                AND ss.class_id = ?
+                AND ss.section_id = ?
+                AND s.isactive = 1 
+                AND c.isactive = 1 
+                AND ss.isactive = 1
+            GROUP BY 
+                ss.school_id, ss.medium_id, ss.class_id, _ssl.student_id, 
+                sl.first_language, sl.second_language, sl.third_language, 
+                sl.opt_elec_subject, c.code, s.name, 
+                _ssl.second_language, _ssl.first_language, _ssl.third_language, _ssl.opt_elec_subject
+            ORDER BY CAST(ss.roll_no AS SIGNED) ASC`
+            ;
+
+        const [rows] = await db.query(query, [
+            academic_year_id, // for _ssl.academic_year_id
+            academic_year_id, // for sl.academic_year_id
+            academic_year_id, // for WHERE ss.academic_year_id
+            school_id, medium_id, class_id, section_id
+        ]);
+        return rows && rows.length > 0 ? rows : [];
+    } catch (err) {
+        console.error("Error finding students:", err.message);
+        throw err;
     }
 }

@@ -68,42 +68,43 @@ async function login(req, res) {
 }
 
 const refresh = async (req, res) => {
-    const { token } = req.body || {};
-    // const token = req.cookies?.auth;
-    const fingerprint = req.headers["x-fingerprint"];
+    res.json({ "api": "refresh" });
+    // const { token } = req.body || {};
+    // // const token = req.cookies?.auth;
+    // const fingerprint = req.headers["x-fingerprint"];
 
-    if (!token || !fingerprint) {
-        return res.status(400).json({ message: "Missing token or fingerprint" });
-    }
+    // if (!token || !fingerprint) {
+    //     return res.status(400).json({ message: "Missing token or fingerprint" });
+    // }
 
-    try {
-        const decoded = jwt.verify(token, REFRESH_SECRET);
-        const sessionKey = `session:${decoded.sid}`;
-        const sessionData = await redis.get(sessionKey);
+    // try {
+    //     const decoded = jwt.verify(token, REFRESH_SECRET);
+    //     const sessionKey = `session:${decoded.sid}`;
+    //     const sessionData = await redis.get(sessionKey);
 
-        if (!sessionData) {
-            return res.status(401).json({ message: "Invalid session" });
-        }
+    //     if (!sessionData) {
+    //         return res.status(401).json({ message: "Invalid session" });
+    //     }
 
-        const { refreshToken, fingerprint: storedFingerprint } = JSON.parse(sessionData);
+    //     const { refreshToken, fingerprint: storedFingerprint } = JSON.parse(sessionData);
 
-        if (refreshToken !== token || storedFingerprint !== fingerprint) {
-            return res.status(401).json({ message: "Invalid refresh request" });
-        }
+    //     if (refreshToken !== token || storedFingerprint !== fingerprint) {
+    //         return res.status(401).json({ message: "Invalid refresh request" });
+    //     }
 
-        // Generate new tokens (reuse same sessionId)
-        const { accessToken, refreshToken: newRefresh } = generateTokens(decoded.sub, decoded.sid);
+    //     // Generate new tokens (reuse same sessionId)
+    //     const { accessToken, refreshToken: newRefresh } = generateTokens(decoded.sub, decoded.sid);
 
-        // Rotate refresh token
-        await redis.set(sessionKey, JSON.stringify({ refreshToken: newRefresh, fingerprint }), { EX: REFRESH_EXPIRES });
+    //     // Rotate refresh token
+    //     await redis.set(sessionKey, JSON.stringify({ refreshToken: newRefresh, fingerprint }), { EX: REFRESH_EXPIRES });
 
-        res.cookie("auth", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: ACCESS_EXPIRES * 1000 });
+    //     res.cookie("auth", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: ACCESS_EXPIRES * 1000 });
 
-        res.json({ accessToken, expiresIn: ACCESS_EXPIRES });
-    } catch (err) {
-        console.error("Refresh error:", err.message);
-        res.status(401).json({ message: "Invalid refresh token" });
-    }
+    //     res.json({ accessToken, expiresIn: ACCESS_EXPIRES });
+    // } catch (err) {
+    //     console.error("Refresh error:", err.message);
+    //     res.status(401).json({ message: "Invalid refresh token" });
+    // }
 };
 
 const logout = async (req, res) => {

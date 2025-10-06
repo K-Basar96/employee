@@ -65,13 +65,15 @@ const useAuth = (redirectToLogin = false) => {
     const logout = async () => {
         try {
             const { data } = await api.post("/auth/logout");
-            localStorage.clear();
-            setUser(null);
             notify(data?.message, 'success');
             return { success: true, message: data?.message };
         } catch (error) {
             notify("Logout failed!", 'error');
             return { success: false, message: "Something went wrong during logout!" };
+        }
+        finally {
+            localStorage.clear();
+            setUser(null);
         }
     };
 

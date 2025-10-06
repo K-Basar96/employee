@@ -109,7 +109,7 @@ const SchoolLanguage = () => {
                 <div className="card px-3 mt-4">
                     <div className='my-2'>
                         <div className="card-title h4">Subject Language</div>
-                        <div className='card-category text-muted'>Class wise student subject language setup</div>
+                        <div className='card-category text-muted'>Class wise language setup</div>
                     </div>
 
                     <form className='d-flex flex-row justify-content-around my-2' onSubmit={handleSearch}>
