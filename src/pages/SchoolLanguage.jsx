@@ -184,7 +184,7 @@ const SchoolLanguage = () => {
                                                                             id={`chk_${lang.class_id}_${id}_${t.key}`}
                                                                             checked={checked} onChange={(e) => handleCheckboxChange(e, t.idKey)}
                                                                         />
-                                                                        <label className="form-check-label" htmlFor={`chk_${lang.class_id}_${id}_${t.key}`}>
+                                                                        <label className="form-check-label fw-normal" htmlFor={`chk_${lang.class_id}_${id}_${t.key}`}>
                                                                             {name}
                                                                         </label>
                                                                     </div>
@@ -199,7 +199,7 @@ const SchoolLanguage = () => {
                                 </tbody>
                             </table>
                             <div className='float-end mx-5'>
-                                <Button type="submit" variant="contained" color="primary" size="large">
+                                <Button type="submit" variant="contained" color="success" size="large">
                                     <i className="fa-solid fa-save"></i>Save
                                 </Button>
                             </div>

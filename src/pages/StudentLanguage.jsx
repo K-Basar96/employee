@@ -69,10 +69,11 @@ const StudentLanguage = () => {
             const res = await api.post("/language/student", {
                 medium_id: selectedMedium,
                 class_id: selectedClass,
+                section_id: selectedSection
             });
             if (res.data.success) {
-                console.table(res.data.result);
-                setLanguageData(res.data.result);
+                // console.table(res.data.students);
+                setLanguageData(res.data.students);
             } else {
                 console.error("Search failed:", res.data.message);
             }
@@ -86,27 +87,45 @@ const StudentLanguage = () => {
         notify("Searching form reset successfully!", "warning");
     }
 
-    const handleCheckboxChange = (e, type) => {
-        const id = e.target.value;
-        const checked = e.target.checked;
+    const handleResetLanguage = (studentId) => {
+        let studentName = "this student";
+        setLanguageData(prevData =>
+            prevData.map(student => {
+                if (student.student_id === studentId) {
+                    studentName = student.student;
+                    return {
+                        ...student,
+                        f_id: "",
+                        s_id: "",
+                        t_id: "",
+                        opt_id: ""
+                    };
+                }
+                return student;
+            })
+        );
+        notify(`Language selection reset for ${studentName}!`, "error");
+    };
 
-        const updatedData = { ...languageData };
-        let selectedIds = updatedData[type]?.split(",") || [];
-        if (checked) {
-            if (!selectedIds.includes(id)) selectedIds.push(id);
-        } else {
-            selectedIds = selectedIds.filter((x) => x !== id);
-        }
-
-        updatedData[type] = selectedIds.join(",");
-        setLanguageData(updatedData);
+    const handleCheckboxChange = (studentId, field, langId) => {
+        setLanguageData(prevData =>
+            prevData.map(student => {
+                if (student.student_id === studentId) {
+                    return { ...student, [field]: langId.toString() };
+                }
+                return student;
+            })
+        );
     };
 
     const handleSave = async (e) => {
         e.preventDefault();
 
         try {
-            const res = await api.post("/language/school/save", {
+            const res = await api.post("/language/student/save", {
+                medium_id: selectedMedium,
+                class_id: selectedClass,
+                section_id: selectedSection,
                 languageData
             });
             if (res.data.success) {
@@ -165,7 +184,7 @@ const StudentLanguage = () => {
                                     : (<option disabled>Select Section</option>)}
                             </select>
                         </div>
-                        <div className='d-flex flex-row gap-2 col-md-3 py-4'>
+                        <div className='d-flex flex-row gap-2 col-md-2 py-4'>
                             <Button type="submit" variant="contained" color="primary">
                                 <i className="fa-solid fa-magnifying-glass"></i>Search
                             </Button>
@@ -175,65 +194,134 @@ const StudentLanguage = () => {
                         </div>
                     </form>
 
-                    {languageData && (
-                        <form className='col-md-12 m-2' onSubmit={handleSave}>
+                    {languageData && languageData.length > 0 && (
+                        <form className="col-md-12 m-2" onSubmit={handleSave}>
                             <table className="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>CLASS</th>
+                                        <th>SL.NO</th>
+                                        <th>STUDENT</th>
+                                        <th>DETAILS</th>
                                         <th>FIRST LANGUAGE</th>
                                         <th>SECOND LANGUAGE</th>
                                         <th>THIRD LANGUAGE</th>
                                         <th>OPTIONAL/ELECTIVE</th>
+                                        <th>ACTION</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    {[languageData].map((lang, idx) => {
-                                        const types = [
-                                            { key: "first_language", label: "First Language", idKey: "fl_id" },
-                                            { key: "second_language", label: "Second Language", idKey: "sl_id" },
-                                            { key: "third_language", label: "Third Language", idKey: "tl_id" },
-                                            { key: "opt_elec_subject", label: "Optional/Elective", idKey: "opt_id" },
-                                        ];
+                                    {languageData.map((lang, index) => {
+                                        const firstLangs = lang.first_language?.split(",") || [];
+                                        const firstLangIds = lang.first_language_id?.split(",") || [];
+                                        const secondLangs = lang.second_language?.split(",") || [];
+                                        const secondLangIds = lang.second_language_id?.split(",") || [];
+                                        const thirdLangs = lang.third_language?.split(",") || [];
+                                        const thirdLangIds = lang.third_language_id?.split(",") || [];
+                                        const optLangs = lang.opt_elec_subject?.split(",") || [];
+                                        const optLangIds = lang.opt_elec_subject_id?.split(",") || [];
+
                                         return (
-                                            <tr key={lang.class_id}>
-                                                <td>{lang.class_name}</td>
-                                                {types.map((t) => {
-                                                    const names = lang[t.key]?.split(",") || [];
-                                                    const ids = lang[t.key + "_id"]?.split(",") || [];
-                                                    const selectedIds = lang[t.idKey]?.split(",") || [];
-                                                    return (
-                                                        <td key={t.key}>
-                                                            {names.map((name, i) => {
-                                                                const id = ids[i];
-                                                                const checked = selectedIds.includes(id);
-                                                                return (
-                                                                    <div className="form-check" key={id}>
-                                                                        <input type="checkbox" className="form-check-input" value={id}
-                                                                            id={`chk_${lang.class_id}_${id}_${t.key}`}
-                                                                            checked={checked} onChange={(e) => handleCheckboxChange(e, t.idKey)}
-                                                                        />
-                                                                        <label className="form-check-label" htmlFor={`chk_${lang.class_id}_${id}_${t.key}`}>
-                                                                            {name}
-                                                                        </label>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </td>
-                                                    );
-                                                })}
+                                            <tr key={lang.student_id}>
+                                                <td>{index + 1}</td>
+                                                <td>{lang.student}</td>
+                                                <td>
+                                                    <b>Class:</b> {lang.class_name} <br />
+                                                    <b>Roll No:</b> {lang.roll_no} <br />
+                                                    <b>Section:</b> {lang.section}
+                                                </td>
+
+                                                {/* FIRST LANGUAGE */}
+                                                <td>
+                                                    {firstLangs.map((name, i) => {
+                                                        const id = firstLangIds[i];
+                                                        const checked = (lang.f_id || "").split(",").includes(id);
+                                                        const disabled = firstLangs.length === 1;
+                                                        return (
+                                                            <div className="form-check" key={id}>
+                                                                <input className="form-check-input" type="radio" name={`first_language_${lang.student_id}`} value={id}
+                                                                    checked={checked} disabled={disabled} onChange={() => handleCheckboxChange(lang.student_id, "f_id", id)}
+                                                                />
+                                                                <label className="form-check-label fw-normal">{name}</label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </td>
+
+                                                {/* SECOND LANGUAGE */}
+                                                <td>
+                                                    {secondLangs.map((name, i) => {
+                                                        const id = secondLangIds[i];
+                                                        const checked = (lang.s_id || "").split(",").includes(id);
+                                                        const disabled = secondLangs.length === 1;
+                                                        return (
+                                                            <div className="form-check" key={id}>
+                                                                <input className="form-check-input" type="radio" name={`second_language_${lang.student_id}`} value={id}
+                                                                    checked={checked} disabled={disabled} onChange={() => handleCheckboxChange(lang.student_id, "s_id", id)}
+                                                                />
+                                                                <label className="form-check-label fw-normal">{name}</label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </td>
+
+                                                {/* THIRD LANGUAGE */}
+                                                <td>
+                                                    {thirdLangs.map((name, i) => {
+                                                        const id = thirdLangIds[i];
+                                                        const checked = (lang.t_id || "").split(",").includes(id);
+                                                        const disabled = thirdLangs.length === 1;
+                                                        return (
+                                                            <div className="form-check" key={id}>
+                                                                <input className="form-check-input" type="radio" name={`third_language_${lang.student_id}`} value={id}
+                                                                    checked={checked} disabled={disabled} onChange={() => handleCheckboxChange(lang.student_id, "t_id", id)}
+                                                                />
+                                                                <label className="form-check-label fw-normal">{name}</label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </td>
+
+                                                {/* OPTIONAL/ELECTIVE */}
+                                                <td>
+                                                    {optLangs.map((name, i) => {
+                                                        const id = optLangIds[i];
+                                                        const checked = (lang.opt_id || "").split(",").includes(id);
+                                                        const disabled = optLangs.length === 1;
+                                                        return (
+                                                            <div className="form-check" key={id}>
+                                                                <input className="form-check-input" type="radio" name={`opt_elec_subject_${lang.student_id}`} value={id}
+                                                                    checked={checked} disabled={disabled} onChange={() => handleCheckboxChange(lang.student_id, "opt_id", id)}
+                                                                />
+                                                                <label className="form-check-label">{name}</label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </td>
+
+                                                {/* ACTION (Reset button) */}
+                                                <td>
+                                                    {/* this button will reset the language selection for the student */}
+                                                    <Button variant="contained" color="warning" onClick={() => handleResetLanguage(lang.student_id)}
+                                                        disabled={firstLangs.length === 1 && secondLangs.length === 1 && thirdLangs.length === 1 && optLangs.length === 1}
+                                                    >
+                                                        <i className="fas fa-undo"></i>&nbsp;Reset
+                                                    </Button>
+                                                </td>
                                             </tr>
                                         );
                                     })}
                                 </tbody>
                             </table>
-                            <div className='float-end mx-5'>
-                                <Button type="submit" variant="contained" color="primary" size="large">
-                                    <i className="fa-solid fa-save"></i>Save
+
+                            <div className="float-end mx-5">
+                                <Button type="submit" variant="contained" color="success" size="large">
+                                    <i className="fa-solid fa-save"></i> Save
                                 </Button>
                             </div>
                         </form>
                     )}
+
 
                 </div>
             </div>

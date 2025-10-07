@@ -17,7 +17,7 @@ const NotifierProvider = ({ children }) => {
                 fontWeight: 300,
                 fontSize: '1.2rem',
                 minWidth: 500,
-                textAlign: 'center'
+                textAlign: 'center',
             }
         });
     }, [enqueueSnackbar]);

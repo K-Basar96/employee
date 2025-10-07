@@ -1,5 +1,5 @@
 // backend/controllers/authController.js
-import { getMediumList, getClassList, getSectionList, schoollanguage, save_school_lang, getStudentList } from "../models/languageModel.js";
+import { getMediumList, getClassList, getSectionList, schoollanguage, save_school_lang, getStudentList, save_student_lang } from "../models/languageModel.js";
 import jwt from "jsonwebtoken";
 import redis from "../../redisClient.js";
 import dotenv from "dotenv";
@@ -60,7 +60,6 @@ async function sections(req, res) {
             const sessionObj = JSON.parse(sessionData);
             school_id = sessionObj.user.school_id;
             const rows = await getSectionList({ academic_year_id, school_id, medium_id, class_id });
-            console.table(rows);
             res.json({ success: true, sections: rows });
         }
     } catch (err) {
@@ -120,8 +119,7 @@ async function school_save(req, res) {
 }
 
 async function student(req, res) {
-    let medium_id = req.body.medium_id, class_id = req.body.class_id, academic_year_id = 8, school_id;
-    let section_id = 1; // Default section_id
+    let medium_id = req.body.medium_id, class_id = req.body.class_id, section_id = req.body.section_id, academic_year_id = 8, school_id;
     try {
         const token = req.cookies?.auth;
         const x_fingerprint = req.headers["x-fingerprint"];
@@ -141,7 +139,30 @@ async function student(req, res) {
 }
 
 async function student_save(req, res) {
-    res.json({ success: true, result: 'student_save' });
+    let school_id;
+    let academic_year_id = 8;
+    let medium_id = req.body.medium_id;
+    let class_id = req.body.class_id;
+    let section_id = req.body.section_id;
+
+    try {
+        const token = req.cookies?.auth;
+        const x_fingerprint = req.headers["x-fingerprint"];
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+            const sessionKey = `session:${decoded.sid}`;
+            const sessionData = await redis.get(sessionKey);
+            const sessionObj = JSON.parse(sessionData);
+            school_id = sessionObj.user.school_id;
+
+
+            const rows = await save_student_lang({ academic_year_id, school_id, medium_id, class_id, section_id, languageData: req.body.languageData });
+            res.json({ success: true, result: rows });
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(403).json({ success: false, message: "Forbidden" });
+    }
 }
 
 export { school, classes, sections, searching, school_save, student, student_save };

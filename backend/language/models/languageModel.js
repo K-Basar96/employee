@@ -400,3 +400,67 @@ export async function getStudentList({ academic_year_id, school_id, medium_id, c
         throw err;
     }
 }
+
+export async function save_student_lang({ academic_year_id, school_id, medium_id, class_id, section_id, languageData }) {
+    //Insert school_student_language table
+    const created = new Date().toISOString().slice(0, 10);
+    try {
+        const dbConfig = "DB3";
+        if (!pools[dbConfig]) {
+            pools[dbConfig] = mysql.createPool({
+                host: process.env[`${dbConfig}_HOST`],
+                user: process.env[`${dbConfig}_USER`],
+                password: process.env[`${dbConfig}_PASS`],
+                database: process.env[`${dbConfig}_NAME`],
+            });
+        }
+        const db = pools[dbConfig];
+        const conn = await db.getConnection();
+        try {
+            await conn.beginTransaction();
+
+            // Loop through all students and update their language selections
+            for (const lang of languageData) {
+                const student_id = lang.student_id;
+                if (!student_id || student_id <= 0) continue;
+
+                const updateData = {
+                    created,
+                    first_language: lang.f_id || null,
+                    second_language: lang.s_id || null,
+                    third_language: lang.t_id || null,
+                    opt_elec_subject: lang.opt_id || null,
+                };
+
+                // Build the SET clause dynamically
+                const setClause = Object.keys(updateData)
+                    .map((key) => `${key} = ?`)
+                    .join(", ");
+                const values = Object.values(updateData);
+
+                const whereClause = "student_id = ? AND isactive = 1";
+                values.push(student_id);
+
+                const query = `
+                    UPDATE school_student_language
+                    SET ${setClause}
+                    WHERE ${whereClause}
+                `;
+                await conn.query(query, values);
+            }
+
+            await conn.commit();
+            conn.release();
+
+            return { success: true, message: "Student languages updated successfully" };
+        } catch (err) {
+            await conn.rollback();
+            conn.release();
+            console.error("Transaction error:", err.message);
+            return { success: false, message: "Failed to update student languages" };
+        }
+    } catch (err) {
+        console.error("Connection error:", err.message);
+        throw err;
+    }
+}
