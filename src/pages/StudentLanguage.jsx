@@ -314,15 +314,14 @@ const StudentLanguage = () => {
                                 </tbody>
                             </table>
 
-                            <div className="float-end mx-5">
-                                <Button type="submit" variant="contained" color="success" size="large">
-                                    <i className="fa-solid fa-save"></i> Save
+                            {/* Save Button */}
+                            <div style={{ position: "fixed", bottom: "50px", right: "85px", zIndex: 5 }}>
+                                <Button type="submit" variant="contained" color="success" size="large" sx={{ boxShadow: 4, borderRadius: "50px", px: 4, py: 1.2 }}>
+                                    <i className="fa-solid fa-save me-2"></i> Save
                                 </Button>
                             </div>
                         </form>
                     )}
-
-
                 </div>
             </div>
         </div >
