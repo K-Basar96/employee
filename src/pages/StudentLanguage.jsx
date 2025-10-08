@@ -29,13 +29,13 @@ const StudentLanguage = () => {
         }
     };
 
-    // Reset data
+    // Reset search field and results
     const handleReset = () => {
         setLanguageData(null);
         notify("Search form reset successfully!", "warning");
     };
 
-    const handleResetLanguage = (studentId) => {
+    const handleResetLanguage = (studentId, firstLangs, secondLangs, thirdLangs, optLangs) => {
         let studentName = "this student";
         setLanguageData(prevData =>
             prevData.map(student => {
@@ -43,10 +43,10 @@ const StudentLanguage = () => {
                     studentName = student.student;
                     return {
                         ...student,
-                        f_id: "",
-                        s_id: "",
-                        t_id: "",
-                        opt_id: ""
+                        f_id: firstLangs.length === 1 ? student.f_id : "",
+                        s_id: secondLangs.length === 1 ? student.s_id : "",
+                        t_id: thirdLangs.length === 1 ? student.t_id : "",
+                        opt_id: optLangs.length === 1 ? student.opt_id : "",
                     };
                 }
                 return student;
@@ -206,8 +206,8 @@ const StudentLanguage = () => {
                                                 {/* ACTION (Reset button) */}
                                                 <td>
                                                     {/* this button will reset the language selection for the student */}
-                                                    <Button variant="contained" color="warning" onClick={() => handleResetLanguage(lang.student_id)}
-                                                        disabled={firstLangs.length === 1 && secondLangs.length === 1 && thirdLangs.length === 1 && optLangs.length === 1}
+                                                    <Button variant="contained" color="warning" onClick={() => handleResetLanguage(lang.student_id, firstLangs, secondLangs, thirdLangs, optLangs)}
+                                                        disabled={firstLangs.length <= 1 && secondLangs.length <= 1 && thirdLangs.length <= 1 && optLangs.length <= 1}
                                                     >
                                                         <i className="fas fa-undo"></i>&nbsp;Reset
                                                     </Button>

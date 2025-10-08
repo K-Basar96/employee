@@ -1,22 +1,74 @@
+// src/pages/StudentLanguageReport.jsx
+import React, { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import api from "../hooks/axios";
 import { useNotifier } from "../components/Notifier";
-import React, { useState } from 'react';
-import { useOutletContext } from "react-router-dom";
-import SearchStudents from '../components/SearchStudents';
+import SearchStudents from "../components/SearchStudents";
+import DraggingTable from "../components/DraggingTable";
 
 const StudentLanguageReport = () => {
     const notify = useNotifier();
     const { user } = useOutletContext();
 
-    const [languageData, setLanguageData] = useState(null);
+    const [languageData, setLanguageData] = useState([]);
     const [selectedClass, setSelectedClass] = useState("");
 
+    // Columns for DraggingTable
+    const columns = [
+        { accessorKey: "student", header: "Student Name" },
+        { accessorKey: "class_name", header: "Class" },
+        { accessorKey: "section", header: "Section" },
+        { accessorKey: "roll_no", header: "Roll No" },
+        { accessorKey: "first_language", header: "First Language" },
+        { accessorKey: "second_language", header: "Second Language" },
+        { accessorKey: "third_language", header: "Third Language" },
+        { accessorKey: "opt_elec_subject", header: "Optional/Elective" },
+    ];
+
+    // Handle search request
     const handleSearch = async (data) => {
         try {
             setSelectedClass(data.class_id);
             const res = await api.post("/language/student", data);
+
             if (res.data.success) {
-                setLanguageData(res.data.students);
+                // Map language IDs to names for display
+                const students = res.data.students.map((s) => {
+                    const firstLangs = s.first_language?.split(",") || [];
+                    const firstLangIds = s.first_language_id?.split(",") || [];
+                    const secondLangs = s.second_language?.split(",") || [];
+                    const secondLangIds = s.second_language_id?.split(",") || [];
+                    const thirdLangs = s.third_language?.split(",") || [];
+                    const thirdLangIds = s.third_language_id?.split(",") || [];
+                    const optLangs = s.opt_elec_subject?.split(",") || [];
+                    const optLangIds = s.opt_elec_subject_id?.split(",") || [];
+
+                    return {
+                        ...s,
+                        first_language:
+                            s.f_id && s.f_id > 0
+                                ? firstLangs[firstLangIds.indexOf(s.f_id)]
+                                : "No Language Selected",
+                        second_language:
+                            s.s_id && s.s_id > 0
+                                ? secondLangs[secondLangIds.indexOf(s.s_id)]
+                                : "No Language Selected",
+                        third_language:
+                            [5, 6, 9, 10].includes(parseInt(data.class_id))
+                                ? "Not Needed"
+                                : s.t_id && s.t_id > 0
+                                    ? thirdLangs[thirdLangIds.indexOf(s.t_id)]
+                                    : "No Language Selected",
+                        opt_elec_subject:
+                            [5, 6, 7, 8].includes(parseInt(data.class_id))
+                                ? "Not Needed"
+                                : s.opt_id && s.opt_id > 0
+                                    ? optLangs[optLangIds.indexOf(s.opt_id)]
+                                    : "No Language Selected",
+                    };
+                });
+
+                setLanguageData(students);
             } else {
                 notify("No students found.", "warning");
             }
@@ -28,92 +80,38 @@ const StudentLanguageReport = () => {
 
     // Reset data
     const handleReset = () => {
-        setLanguageData(null);
+        setLanguageData([]);
         notify("Search form reset successfully!", "warning");
     };
 
     return (
         <div>
-            <div className='container-fluid position-absolute' style={{ top: '50px' }}>
-                <h3 className="text-white fw-bold " >Language Report</h3>
+            <div className="container-fluid position-absolute" style={{ top: "50px" }}>
+                <h3 className="text-white fw-bold">Language Report</h3>
                 <div className="card px-3 mt-4">
-                    <div className='my-2'>
-                        <div className="card-title h4">Student language Report</div>
-                        <div className='card-category text-muted'>Classwise Student language Report</div>
+                    <div className="my-2">
+                        <div className="card-title h4">Student Language Report</div>
+                        <div className="card-category text-muted">
+                            Classwise Student Language Report
+                        </div>
                     </div>
 
+                    {/* Search form */}
                     <SearchStudents onSearch={handleSearch} onReset={handleReset} />
 
+                    {/* DraggingTable */}
                     {languageData && languageData.length > 0 && (
-                        <table className="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>SL.NO</th>
-                                    <th>STUDENT DETAILS</th>
-                                    <th>FIRST LANGUAGE</th>
-                                    <th>SECOND LANGUAGE</th>
-                                    <th>THIRD LANGUAGE</th>
-                                    <th>OPTIONAL/ELECTIVE</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {languageData.map((lang, index) => {
-                                    const firstLangs = lang.first_language?.split(",") || [];
-                                    const firstLangIds = lang.first_language_id?.split(",") || [];
-                                    const secondLangs = lang.second_language?.split(",") || [];
-                                    const secondLangIds = lang.second_language_id?.split(",") || [];
-                                    const thirdLangs = lang.third_language?.split(",") || [];
-                                    const thirdLangIds = lang.third_language_id?.split(",") || [];
-                                    const optLangs = lang.opt_elec_subject?.split(",") || [];
-                                    const optLangIds = lang.opt_elec_subject_id?.split(",") || [];
-
-                                    return (
-                                        <tr key={lang.student_id}>
-                                            <td>{index + 1}</td>
-                                            <td>
-                                                <b>Name:</b> {lang.student} <br />
-                                                <b>Class:</b> {lang.class_name} &emsp; <b>Section:</b> {lang.section} &emsp; <b>Roll No:</b> {lang.roll_no}
-                                            </td>
-
-                                            {/* FIRST LANGUAGE */}
-                                            <td>
-                                                {(lang.f_id && lang.f_id > 0) ? firstLangs[firstLangIds.indexOf(lang.f_id)] :
-                                                    <span className='text-danger'>No Language Selected</span>}
-                                            </td>
-
-                                            {/* SECOND LANGUAGE */}
-                                            <td>
-                                                {(lang.s_id && lang.s_id > 0) ? secondLangs[secondLangIds.indexOf(lang.s_id)] :
-                                                    <span className='text-danger'>No Language Selected</span>}
-                                            </td>
-
-                                            {/* THIRD LANGUAGE */}
-                                            <td>
-                                                {[9, 10].includes(parseInt(selectedClass)) ?
-                                                    <label className="text-info">Not Needed</label>
-                                                    : ((lang.t_id && lang.t_id > 0) ? thirdLangs[thirdLangIds.indexOf(lang.t_id)] :
-                                                        <span className='text-danger'>No Language Selected</span>)}
-                                            </td>
-
-                                            {/* OPTIONAL/ELECTIVE */}
-                                            <td>
-                                                {[5, 6, 7, 8].includes(parseInt(selectedClass)) ?
-                                                    <label className="text-info">Not Needed</label>
-                                                    : ((lang.opt_id && lang.opt_id > 0) ? optLangs[optLangIds.indexOf(lang.opt_id)] :
-                                                        <span className="text-danger">No Language Selected</span>)
-                                                }
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                        <DraggingTable
+                            tableData={languageData}
+                            setTableData={setLanguageData}
+                            columns={columns}
+                            rowDrag={false}
+                        />
                     )}
                 </div>
             </div>
-        </div >
-    )
-}
+        </div>
+    );
+};
 
-export default StudentLanguageReport
+export default StudentLanguageReport;
