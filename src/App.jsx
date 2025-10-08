@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import StudentLanguage from "./pages/StudentLanguage";
 import SchoolLanguage from "./pages/SchoolLanguage";
+import StudentLanguageReport from "./pages/StudentLanguageReport";
 import Signature from "./pages/Signature";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -23,6 +24,7 @@ function App() {
 				<Route path="/dashboard" element={<Dashboard />} />
 				<Route path="/language/school" element={<SchoolLanguage />} />
 				<Route path="/language/student" element={<StudentLanguage />} />
+				<Route path="/reports/student_language" element={<StudentLanguageReport />} />
 				<Route path="/sign" element={<Signature />} />
 				{/* ✅ Add more protected routes here */}
 			</Route>

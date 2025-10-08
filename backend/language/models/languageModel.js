@@ -1,19 +1,25 @@
 import mysql from "mysql2/promise";
 let pools = {};
 
+/** ✅ Centralized pool creation & reuse */
+export function getDBPool(dbConfig = "DB3") {
+    if (!pools[dbConfig]) {
+        pools[dbConfig] = mysql.createPool({
+            host: process.env[`${dbConfig}_HOST`],
+            user: process.env[`${dbConfig}_USER`],
+            password: process.env[`${dbConfig}_PASS`],
+            database: process.env[`${dbConfig}_NAME`],
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0,
+        });
+    }
+    return pools[dbConfig];
+}
+
 export async function getMediumList({ academic_year_id, school_id }) {
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const db = pools[dbConfig];
-
+        const db = getDBPool();
         const query = `SELECT DISTINCT m.id, m.name from school_student ss JOIN medium m ON FIND_IN_SET(m.id, ss.medium_id) > 0
             WHERE ss.isactive=1 AND m.isactive=1 AND ss.academic_year_id = ? AND ss.school_id = ?
             `;
@@ -27,17 +33,7 @@ export async function getMediumList({ academic_year_id, school_id }) {
 
 export async function getClassList({ academic_year_id, school_id, medium_id }) {
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const db = pools[dbConfig];
-
+        const db = getDBPool();
         const query = `SELECT DISTINCT c.id, c.name FROM school_student ss JOIN class c ON FIND_IN_SET(c.id, ss.class_id) > 0
             WHERE ss.isactive=1 AND c.isactive=1 AND c.id > 0 AND c.id < 11 AND ss.academic_year_id = ? AND ss.school_id = ? AND ss.medium_id = ?  ORDER BY c.id
             `;
@@ -51,26 +47,13 @@ export async function getClassList({ academic_year_id, school_id, medium_id }) {
 
 export async function getSectionList({ academic_year_id, school_id, medium_id, class_id }) {
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const db = pools[dbConfig];
-
+        const db = getDBPool();
         const query = `
             SELECT DISTINCT s.id, s.code AS name FROM school_student ss
             JOIN section s ON FIND_IN_SET(s.id, ss.section_id) > 0
-            WHERE ss.isactive = 1 
-                AND s.isactive = 1 
-                AND ss.academic_year_id = ?
-                AND ss.school_id = ?
-                AND ss.medium_id = ?
-                AND ss.class_id = ?`
+            WHERE ss.isactive = 1 AND s.isactive = 1 
+                AND ss.academic_year_id = ? AND ss.school_id = ?
+                AND ss.medium_id = ? AND ss.class_id = ?`
             ;
         const [rows] = await db.query(query, [academic_year_id, school_id, medium_id, class_id]);
         return rows && rows.length > 0 ? rows : [];
@@ -82,16 +65,7 @@ export async function getSectionList({ academic_year_id, school_id, medium_id, c
 
 export async function schoollanguage({ academic_year_id, school_id, medium_id, class_id }) {
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const db = pools[dbConfig];
+        const db = getDBPool();
 
         // Step 1: Fetch base class-subject-medium info
         const [baseRows] = await db.execute(`SELECT ss.academic_year_id, ss.school_id, ss.medium_id, ss.class_id,
@@ -171,7 +145,6 @@ export async function schoollanguage({ academic_year_id, school_id, medium_id, c
 
 export async function save_school_lang({ academic_year_id, school_id, medium_id, class_id, selectedLangs }) {
     //Insert school_language table
-    // console.log(selectedLangs['fl_id']);
     const created = new Date().toISOString().slice(0, 10);
     const first_language_list = selectedLangs.fl_id;
     const second_language_list = selectedLangs.sl_id;
@@ -183,71 +156,33 @@ export async function save_school_lang({ academic_year_id, school_id, medium_id,
     const count4 = optional_subject_list ? optional_subject_list.split(",").length : 0;
 
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const pool = pools[dbConfig];
-        const conn = await pool.getConnection();
+        const db = getDBPool();
+        const conn = await db.getConnection();
 
 
         // 1️⃣ Insert/Update school_language
         if (first_language_list) {
-            const [rows] = await conn.query(
-                `SELECT id FROM school_language 
-                 WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=?`,
-                [academic_year_id, school_id, medium_id, class_id]
-            );
+            const [rows] = await conn.query(`SELECT id FROM school_language 
+                WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=?`,
+                [academic_year_id, school_id, medium_id, class_id]);
 
             if (rows.length > 0) {
-                await conn.query(
-                    `UPDATE school_language 
-                     SET first_language=?, second_language=?, third_language=?, opt_elec_subject=?, created=? 
-                     WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=?`,
-                    [
-                        first_language_list,
-                        second_language_list,
-                        third_language_list,
-                        optional_subject_list,
-                        created,
-                        academic_year_id,
-                        school_id,
-                        medium_id,
-                        class_id,
-                    ]
+                await conn.query(`UPDATE school_language SET first_language=?, second_language=?, third_language=?, opt_elec_subject=?, created=? 
+                    WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=?`,
+                    [first_language_list, second_language_list, third_language_list, optional_subject_list, created, academic_year_id, school_id, medium_id, class_id]
                 );
             } else {
-                await conn.query(
-                    `INSERT INTO school_language 
-                     (created, academic_year_id, school_id, medium_id, class_id, first_language, second_language, third_language, opt_elec_subject) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        created,
-                        academic_year_id,
-                        school_id,
-                        medium_id,
-                        class_id,
-                        first_language_list,
-                        second_language_list,
-                        third_language_list,
-                        optional_subject_list,
-                    ]
+                await conn.query(`INSERT INTO school_language 
+                    (created, academic_year_id, school_id, medium_id, class_id, first_language, second_language, third_language, opt_elec_subject) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [created, academic_year_id, school_id, medium_id, class_id, first_language_list, second_language_list, third_language_list, optional_subject_list]
                 );
             }
         }
 
         // 2️⃣ Prepare school_student_language payload
         const arr2 = {
-            created,
-            academic_year_id,
-            school_id,
-            medium_id,
-            class_id,
+            created, academic_year_id, school_id, medium_id, class_id,
             first_language: count1 === 1 ? first_language_list : 0,
             second_language: count2 === 1 ? second_language_list : 0,
             third_language: count3 === 1 ? third_language_list : 0,
@@ -255,9 +190,8 @@ export async function save_school_lang({ academic_year_id, school_id, medium_id,
             isactive: 1,
         };
 
-        const [studLangRows] = await conn.query(
-            `SELECT id FROM school_student_language 
-             WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=? AND isactive=1`,
+        const [studLangRows] = await conn.query(`SELECT id FROM school_student_language 
+            WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=? AND isactive=1`,
             [academic_year_id, school_id, medium_id, class_id]
         );
 
@@ -265,43 +199,22 @@ export async function save_school_lang({ academic_year_id, school_id, medium_id,
 
         if (studLangRows.length > 0) {
             // update existing
-            await conn.query(
-                `UPDATE school_student_language 
-                 SET first_language=?, second_language=?, third_language=?, opt_elec_subject=?, created=? 
-                 WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=? AND isactive=1`,
-                [
-                    arr2.first_language,
-                    arr2.second_language,
-                    arr2.third_language,
-                    arr2.opt_elec_subject,
-                    created,
-                    academic_year_id,
-                    school_id,
-                    medium_id,
-                    class_id,
-                ]
+            await conn.query(`UPDATE school_student_language SET first_language=?, second_language=?, third_language=?, opt_elec_subject=?, created=? 
+                WHERE academic_year_id=? AND school_id=? AND medium_id=? AND class_id=? AND isactive=1`,
+                [arr2.first_language, arr2.second_language, arr2.third_language, arr2.opt_elec_subject, created, academic_year_id, school_id, medium_id, class_id]
             );
 
             // find missing students (not yet in school_student_language)
-            const [missing] = await conn.query(
-                `SELECT student_id 
-                 FROM school_student 
-                 WHERE school_id=? AND medium_id=? AND class_id=? AND academic_year_id=? AND isactive=1
-                   AND student_id NOT IN (
-                     SELECT student_id FROM school_student_language
-                     WHERE school_id=? AND medium_id=? AND class_id=? AND academic_year_id=? AND isactive=1
-                   )`,
-                [
-                    school_id, medium_id, class_id, academic_year_id,
-                    school_id, medium_id, class_id, academic_year_id
-                ]
+            const [missing] = await conn.query(`SELECT student_id FROM school_student 
+                WHERE school_id=? AND medium_id=? AND class_id=? AND academic_year_id=? AND isactive=1 
+                AND student_id NOT IN ( 
+                    SELECT student_id FROM school_student_language WHERE school_id=? AND medium_id=? AND class_id=? AND academic_year_id=? AND isactive=1
+                )`, [school_id, medium_id, class_id, academic_year_id, school_id, medium_id, class_id, academic_year_id]
             );
             student_list = missing;
         } else {
             // new insert → fetch all students
-            const [students] = await conn.query(
-                `SELECT student_id 
-                 FROM school_student 
+            const [students] = await conn.query(`SELECT student_id FROM school_student 
                  WHERE class_id=? AND medium_id=? AND school_id=? AND academic_year_id=? AND isactive=1`,
                 [class_id, medium_id, school_id, academic_year_id]
             );
@@ -310,22 +223,11 @@ export async function save_school_lang({ academic_year_id, school_id, medium_id,
 
         // 3️⃣ Batch insert for missing students
         if (student_list.length > 0) {
-            const values = student_list.map((s) => [
-                arr2.created,
-                arr2.school_id,
-                arr2.medium_id,
-                arr2.class_id,
-                s.student_id,
-                arr2.academic_year_id,
-                arr2.first_language,
-                arr2.second_language,
-                arr2.third_language,
-                arr2.opt_elec_subject,
-                arr2.isactive,
+            const values = student_list.map((s) => [arr2.created, arr2.school_id, arr2.medium_id, arr2.class_id, s.student_id, arr2.academic_year_id,
+            arr2.first_language, arr2.second_language, arr2.third_language, arr2.opt_elec_subject, arr2.isactive,
             ]);
 
-            await conn.query(
-                `INSERT INTO school_student_language 
+            await conn.query(`INSERT INTO school_student_language 
                  (created, school_id, medium_id, class_id, student_id, academic_year_id, first_language, second_language, third_language, opt_elec_subject, isactive) 
                  VALUES ?`,
                 [values]
@@ -342,19 +244,11 @@ export async function save_school_lang({ academic_year_id, school_id, medium_id,
 }
 
 export async function getStudentList({ academic_year_id, school_id, medium_id, class_id, section_id }) {
+    const whereSection = section_id && section_id > 0 ? ` AND ss.section_id = ${section_id} ` : "";
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const db = pools[dbConfig];
+        const db = getDBPool();
 
-        const query = `SELECT DISTINCT ss.school_id, ss.medium_id, ss.class_id, sl.first_language AS first_language_id, ss.roll_no, sec.code,
+        const query = `SELECT DISTINCT ss.school_id, ss.medium_id, ss.class_id, sl.first_language AS first_language_id, ss.roll_no, sec.code as section,
                 sl.second_language AS second_language_id, sl.third_language AS third_language_id, sl.opt_elec_subject AS opt_elec_subject_id,
                 GROUP_CONCAT(DISTINCT s1.name ORDER BY s1.id) AS first_language, GROUP_CONCAT(DISTINCT s2.name ORDER BY s2.id) AS second_language,
                 GROUP_CONCAT(DISTINCT s3.name ORDER BY s3.id) AS third_language, GROUP_CONCAT(DISTINCT s4.name ORDER BY s4.id) AS opt_elec_subject, c.code AS class_name, 
@@ -372,14 +266,9 @@ export async function getStudentList({ academic_year_id, school_id, medium_id, c
             WHERE _ssl.student_id = s.id 
                 AND _ssl.medium_id = ss.medium_id 
                 AND _ssl.class_id = ss.class_id
-                AND ss.academic_year_id = ?
-                AND ss.school_id = ?
-                AND ss.medium_id = ?
-                AND ss.class_id = ?
-                AND ss.section_id = ?
-                AND s.isactive = 1 
-                AND c.isactive = 1 
-                AND ss.isactive = 1
+                AND ss.academic_year_id = ? AND ss.school_id = ?
+                AND ss.medium_id = ? AND ss.class_id = ? ${whereSection}
+                AND s.isactive = 1 AND c.isactive = 1 AND ss.isactive = 1
             GROUP BY 
                 ss.school_id, ss.medium_id, ss.class_id, _ssl.student_id, 
                 sl.first_language, sl.second_language, sl.third_language, 
@@ -392,7 +281,7 @@ export async function getStudentList({ academic_year_id, school_id, medium_id, c
             academic_year_id, // for _ssl.academic_year_id
             academic_year_id, // for sl.academic_year_id
             academic_year_id, // for WHERE ss.academic_year_id
-            school_id, medium_id, class_id, section_id
+            school_id, medium_id, class_id
         ]);
         return rows && rows.length > 0 ? rows : [];
     } catch (err) {
@@ -405,16 +294,7 @@ export async function save_student_lang({ academic_year_id, school_id, medium_id
     //Insert school_student_language table
     const created = new Date().toISOString().slice(0, 10);
     try {
-        const dbConfig = "DB3";
-        if (!pools[dbConfig]) {
-            pools[dbConfig] = mysql.createPool({
-                host: process.env[`${dbConfig}_HOST`],
-                user: process.env[`${dbConfig}_USER`],
-                password: process.env[`${dbConfig}_PASS`],
-                database: process.env[`${dbConfig}_NAME`],
-            });
-        }
-        const db = pools[dbConfig];
+        const db = getDBPool();
         const conn = await db.getConnection();
         try {
             await conn.beginTransaction();
@@ -425,27 +305,17 @@ export async function save_student_lang({ academic_year_id, school_id, medium_id
                 if (!student_id || student_id <= 0) continue;
 
                 const updateData = {
-                    created,
-                    first_language: lang.f_id || null,
-                    second_language: lang.s_id || null,
-                    third_language: lang.t_id || null,
-                    opt_elec_subject: lang.opt_id || null,
+                    created, first_language: lang.f_id || null, second_language: lang.s_id || null, third_language: lang.t_id || null, opt_elec_subject: lang.opt_id || null,
                 };
 
                 // Build the SET clause dynamically
-                const setClause = Object.keys(updateData)
-                    .map((key) => `${key} = ?`)
-                    .join(", ");
+                const setClause = Object.keys(updateData).map((key) => `${key} = ?`).join(", ");
                 const values = Object.values(updateData);
 
                 const whereClause = "student_id = ? AND isactive = 1";
                 values.push(student_id);
 
-                const query = `
-                    UPDATE school_student_language
-                    SET ${setClause}
-                    WHERE ${whereClause}
-                `;
+                const query = `UPDATE school_student_language SET ${setClause} WHERE ${whereClause}`;
                 await conn.query(query, values);
             }
 
